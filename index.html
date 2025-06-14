@@ -1,272 +1,542 @@
-google-site-verification: google940b89798d72f0a4.html
 <!DOCTYPE html>
-<!-- saved from url=(0031)https://ceit.aut.ac.ir/~navidm/ -->
-<html xmlns="http://www.w3.org/1999/html"><head><meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
-
-    <link href="./index_files/style.css" rel="stylesheet" type="text/css">
-    <script type="text/javascript" src="./index_files/jquery-1.11.0.min.js"></script>
-    <script src="./index_files/jquery.js"></script>
-    <title>Navid Mirnouri | Home</title>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Navid's Knowledge Graph</title>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/d3/7.8.5/d3.min.js"></script>
+    <style>
+        body {
+            margin: 0;
+            padding: 20px;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            font-family: 'Arial', sans-serif;
+            min-height: 100vh;
+        }
+        
+        .header {
+            text-align: center;
+            margin-bottom: 30px;
+            color: white;
+        }
+        
+        .header h1 {
+            font-size: 2.5em;
+            margin: 0;
+            text-shadow: 2px 2px 4px rgba(0,0,0,0.3);
+        }
+        
+        .header p {
+            font-size: 1.2em;
+            margin: 10px 0 0 0;
+            opacity: 0.9;
+        }
+        
+        .knowledge-graph {
+            width: 100%;
+            max-width: 1200px;
+            height: 700px;
+            margin: 0 auto;
+            border: 3px solid rgba(255,255,255,0.3);
+            border-radius: 15px;
+            background: rgba(255,255,255,0.1);
+            backdrop-filter: blur(10px);
+            position: relative;
+            overflow: hidden;
+        }
+        
+        .node-core { 
+            fill: #ff6b6b; 
+            stroke: #fff; 
+            stroke-width: 4px;
+            filter: drop-shadow(3px 3px 6px rgba(0,0,0,0.3));
+        }
+        .node-domain { 
+            fill: #4ecdc4; 
+            stroke: #fff; 
+            stroke-width: 3px;
+            filter: drop-shadow(2px 2px 4px rgba(0,0,0,0.2));
+        }
+        .node-tech { 
+            fill: #45b7d1; 
+            stroke: #fff; 
+            stroke-width: 2px;
+            filter: drop-shadow(2px 2px 4px rgba(0,0,0,0.2));
+        }
+        .node-project { 
+            fill: #96ceb4; 
+            stroke: #fff; 
+            stroke-width: 2px;
+            filter: drop-shadow(2px 2px 4px rgba(0,0,0,0.2));
+        }
+        .node-skill { 
+            fill: #feca57; 
+            stroke: #fff; 
+            stroke-width: 2px;
+            filter: drop-shadow(2px 2px 4px rgba(0,0,0,0.2));
+        }
+        
+        .link { 
+            stroke: rgba(255,255,255,0.6); 
+            stroke-width: 2px;
+        }
+        .link-strong { 
+            stroke-width: 4px; 
+            stroke: #ff6b6b;
+            stroke-opacity: 0.8;
+        }
+        
+        .node-text { 
+            font-family: 'Arial', sans-serif; 
+            font-weight: bold;
+            fill: #2c3e50;
+            text-anchor: middle;
+            pointer-events: none;
+            text-shadow: 1px 1px 2px rgba(255,255,255,0.8);
+        }
+        
+        .legend {
+            position: absolute;
+            top: 20px;
+            right: 20px;
+            background: rgba(255,255,255,0.95);
+            padding: 20px;
+            border-radius: 12px;
+            font-size: 14px;
+            box-shadow: 0 8px 25px rgba(0,0,0,0.15);
+            backdrop-filter: blur(10px);
+        }
+        
+        .legend h3 {
+            margin: 0 0 15px 0;
+            color: #2c3e50;
+            font-size: 16px;
+        }
+        
+        .legend-item {
+            display: flex;
+            align-items: center;
+            margin: 8px 0;
+        }
+        
+        .legend-color {
+            width: 24px;
+            height: 24px;
+            border-radius: 50%;
+            margin-right: 10px;
+            border: 2px solid #fff;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+        }
+        
+        .instructions {
+            position: absolute;
+            bottom: 20px;
+            left: 20px;
+            background: rgba(255,255,255,0.95);
+            padding: 15px;
+            border-radius: 10px;
+            font-size: 13px;
+            color: #2c3e50;
+            max-width: 300px;
+            backdrop-filter: blur(10px);
+        }
+        
+        .instructions h4 {
+            margin: 0 0 10px 0;
+            color: #2c3e50;
+        }
+        
+        .back-link {
+            position: absolute;
+            top: 20px;
+            left: 20px;
+            background: rgba(255,255,255,0.2);
+            color: white;
+            padding: 10px 20px;
+            border-radius: 25px;
+            text-decoration: none;
+            font-weight: bold;
+            backdrop-filter: blur(10px);
+            transition: all 0.3s ease;
+        }
+        
+        .back-link:hover {
+            background: rgba(255,255,255,0.3);
+            transform: translateY(-2px);
+        }
+        
+        @media (max-width: 768px) {
+            .knowledge-graph {
+                height: 500px;
+            }
+            .legend, .instructions {
+                position: relative;
+                margin: 20px auto;
+                max-width: 90%;
+            }
+        }
+    </style>
 </head>
 <body>
-<div id="header-base">
-    <div id="header">
-        <img id="avatar" src="./index_files/avatar.jpg">
-        <div id="top-contact">
-
-            <a class="link" href="mialto:n72m@aut.ac.ir">n72m@aut.ac.ir</a><br>
-            <a class="link" href="mailto:navid72m#gmail.com">navid72m@gmail.com</a><br>
-            Linkedin: <a class="link" href="https://ir.linkedin.com/in/navid-mirnouri">in/navid-mirnouri</a><br><br>
-            Github: : <a class="link" href="https://github.com/navid72m">https://github.com/navid72m</a><br><br>
-            Tel: +49-177583196
-        </div>
-        <label id="name">Navid Mirnouri</label>
-        <label class="top-desc">Master of Informatic at Department of <a class="link" href="https://www.in.tum.de/en/cover-page/">Informatics and Mathematics</a>, <a class="link" href="https://www.in.tum.de/en/cover-page/"> Technical University of Munich</a>.</label>
-        <label class="top-desc">Bachelor of Computer Hardware Engineering at Department of <a class="link" href="http://ceit.aut.ac.ir/autcms/home.htm?depurl=computer-engineering&amp;lang=en">Computer Engineering &amp; Information Technology</a>, <a class="link" href="http://www.aut.ac.ir/www/aut/main"> Amirkabir University of Technology</a>.</label>
+    <a href="https://github.com/navid72m" class="back-link">← Back to GitHub</a>
+    
+    <div class="header">
+        <h1>🧠 Navid's Knowledge Universe</h1>
+        <p>Interactive visualization of expertise, projects & research connections</p>
     </div>
-</div>
-<div id="menu-bar">
-    <div id="menu-base">
-        <a href="navid72m.github.io/index.html"><label class="menu-item">Education</label></a>
-        <a href="navid72m.github.io/#re"><label class="menu-item">Research Experience</label></a>
-		<a href="navid72m.github.io/#honor"><label class="menu-item">Honors</label></a>
-        <a href="navid72m.github.io/#te"><label class="menu-item">Teaching Experience</label></a>
-        <a href="navid72m.github.io/#skill"><label class="menu-item">Skills</label></a>
-        <a href="navid72m.github.io/#project"><label class="menu-item">Notable projects</label></a>
-        <a href="navid72m.github.io/#pres"><label class="menu-item">Work Experience</label></a>
-
-
-    </div>
-</div>
-<div id="body">
-    <div id="content">
-        <div id="main-text">
-            <h2 class="title">Research Interest</h2>
-            <ul>
-		<li> Computer Architecture and Parallel Systems</li>
-                <li> Robotics and Artificial Intelligence</li>
-
-            </ul>
-            <br>
-            <h2 id="edu" class="title">Education</h2>
-            <ul>
-                <li>Technical University of Munich, M.Sc. in Informatics, 2018 – Now, Munich, Germany</li>
-                <li>Amirkabir University of technology, B.Sc. in Computer Engineering, 2011 – 2016, Tehran, Iran</li>
-                <ul>
-                    <li>Total GPA: 16 out of 20</li>
-
-                </ul>
-                <li>Hatef High School, Diploma of Math and Physics, 2007-2011, Tehran, Iran</li>
-                <ul>
-                    <li>GPA: 19.54 out of 20</li>
-                </ul>
-            </ul>
-            <br>
-            <h2 id="re" class="title">Research Experience &amp; Publications:</h2>
-            <ul>
-                <li>Correlation Power Analysis Attack on AES Using Switching Glitch Power Leakage Model, Jul 2015
-                </li>
-                <ul>
-                    <li>Technical Report</li>
-                    <li>Abstract:Power leakage from hardware
-                        implementation of encryption algorithms is a start point
-                        for power analysis attacks. Correlation Power Analysis
-                        attack is one of power analysis methods that uses
-                        correlation between estimated power consumption and
-                        real power measurement. This paper uses Correlation
-                        Power Analysis attack on a hardware implementation of
-                        AES to find embedded secret key. Two power leakage
-                        models called Hamming Distance and Switching Glitch
-                        is compared for power prediction. It is proven that
-                        Switching Glitch model is more efficient than Hamming
-                        Distance model in power prediction.</li>
-                </ul>
-                <li>N. Mirnouri, “Different Application for detecting elephant flow in SDN”, Technical Report for Research Methods Course, Tehran, Iran, 2015  </li>
-            </ul>
-			<br>
-            <h2 id="honor" class="title">Honors &amp; Awards:</h2>
-            <ul>
-                <li>3rd rank in FPT'15 International Conference Design Competition, December 2015. Queenstown, NewZealand.
-                </li>
-                <li>First rank in 2nd National Digital System Design in Hardware Based Security, May 2015. Amirk- abir University of Technology.</li>
-                <li>Second rank in 2nd National Digital System Design in Hardware-Software Codesign, May 2015. Amirkabir University of Technology.
-                </li>
-                <li>First Rank in Digital System Design Competitions in Department of Computer Engineering and Information Technology(CEIT) in Online Track November 2014</li>
-                <li>Second Rank in Digital System Design Competitions in Department of Computer Engineering and Information Technology(CEIT) in Offline Track November 2014</li>
-                <li>Ranked as Top 0.5% among more than 300,000 Participants in National Entrance Exam for Undergraduate State Universities, Tehran, 2011.</li>
-            </ul>
-            <br>
-            <h2 id="te" class="title">Teaching Experience:</h2>
-            <ul>
-                <li> Teaching Assistant</li>
-                <ul>
-					<li>Computer Networks 2, Amirkabir University of technology,  Spring 2015</li>
-					<li>Electronics Digital, Amirkabir University of technology,  Fall 2014</li>
-                </ul>
-				<li> Instructor</li>
-                <ul>
-                    <li>FPGA Design and HDL Development, Amirkabir University of technology, Fall 2015</li>
-                </ul>
-            </ul>
-            <br>
-            <h2 id="skill" class="title">Skills &amp; Expertise:</h2>
-            <ul>
-                <li>Programing &amp; Hardware Design Languages:</li>
-                    <span>Java (Proficient), C/C++, Python , Verilog, VHDL, JavaScript, PHP, AVR Assembly</span>
-                <li>Software:</li>
-                    <span>Xilinx ISE , Altera Quartus,Proteus, Modelsim, Eclipse, SPICE, Turbo C, Cadence ICFB,Altium Designer, Packet Tracer</span>
-                <li>Type Setting:</li>
-                    <span>LATEX,Microsoft Word</span>
-                <li>Embedded Systems:</li>
-                    <span>FPGA,AVR,Raspberry pi</span>
-                <li>Web Design:</li>
-                     <span>HTML, CSS, PHP, JavaScript, XML, AJAX, XSLT.</span>
-                <li>OS:</li>
-                    <span>Linux , MS Windows</span>
-            </ul>
-
-
-            <br>
-            <h2 id="project" class="title">Notable projects:</h2>
-
-            <ul>
-               <li> Implementation of the Dashboard Panels for different teams at Quiz of King Co		2017- 2018<li>
-                    <ul> <li>In Quiz of King Co(The biggest online game in Iran with more than 10 million user), I was working as a FullStack Developer and was in charge of implementation of the frontend and backend of the dashboard panels for different teams such as: Marketing and CRM. Golang and gin framework was used for creating backend APIs and AngularTs was used for frontend.</li></ul>
-                <li>    Creating a Smart contract survey 						Summer and Fall 2020</li>
-                   <ul> <li> In our  Interdisciplinary Project course  we used Reactjs for designing and implementing admin panels for creating surveys.  I was in charge of the frontend of the application : fetching the data from the backend and showing it as a survey and in the admin panel I was in charge of the data visualization using “Chart Js” library. Also NodeJs and MongoDB was used for the backend and storing survey data.</li></ul>
-                    
-                <li>IoT RetroFit TruPlasma Flow Power Supplies at Motius
-                    Fall 2018</li>
-                    <ul><li>
-                    In this project the goal was to use IoT solution for sending power consumption data over the
-                    network to the servers. For this purpose the device was given to us with a uart interface and a
-                    unique communication protocol. My job was to R&D for designing and implementing a IoT solution
-                    which gets the power consumption data via uart interface and send it through LTE module using
-                    MQTT protocol to a server.</li></ul>
-
-                    <li>Machine Learning in Crowd Modeling and Simulation 				Summer and Fall 2020</li>>
-                        <ul> <li>In this practical course we used python language for implementing different mathematical and machine learning  solutions in Crowd modeling and Simulation.</li></ul>
-                    <li>Data Mining Algorithm on Time Series data   					Summer and Fall 2020</li>>
-                        <ul><li>In this practical course I was supposed to optimize the algorithm and code of the RKDT library which is a data mining library for time series and is written in C++.</li>></ul>
-
-                    <li>Implementation of data compression technique in cache on FPGA
-
-Fall 2016</li>
-<ul><li>In this project I implemented a cache module in vhdl. On top of the cache two extra module were
-implemented including Compressor and Decompressor. In case of write operation to cache:Compressor module get the data from UART interface and compress the data and send it to cache.
-Cache stores the data and when a read operation happens Decompressor module reads the
-compressed data and decompress it and send it over uart module. Entire project were implemented
-in VHDL.</li></ul>
-		<li>Implementation of an interactive displaying system for automated building.(Thesis) Spring 2016 </li>
-                <ul>
-                    <li>In this project I designed and implemented displaying system for a building using python language on raspberry pi.</li>
-                </ul>
-                <li>Implementation of a parallel architecture for image sharing  Spring 2016 </li>
-                <ul>
-                    <li>Using VHDL language, we  implemented an image encrypting system on FPGA. </li>
-                </ul>
-                <li>Implementation of TRAX Artificial Intelligence Algorithm on FPGA Fall 2015</li>
-                <ul>
-                    <li>Using Xilinx XPS ,Software design of Min-Max algorithm with some heuristic function for TRAX Artificial Intelligence Algorithm on FPGA. This program was developed using C language and was implemented on ZedBoard for FPT 2015 Design Competitions.</li>
-                </ul>
-                <li>Hardware Software Co-design of an image encrypting system on FPGA Spring 2015</li>
-                <ul>
-                    <li>Using Xilinx XPS ,Hardware Software Co-design to implement an encrypting system as the course
-                        of "Digital Design Automation". This system included a VHDL module that has some input as a data. This module was instantiated with C language and connected to Microblaze through FSL Bus. A user interface was designed on PC to get the image, then send it to FPGA using RS232 protocol.</li>
-                </ul>
-                <li>implementation of CPA attack to find key of AES encryptor Spring 2015</li>
-                <ul>
-                    <li>Power consumption data, leaked from the encryptor was handed to us previously. We used these
-                        data to implement CPA attack in C language, in order to find embedded key.</li>
-                </ul>
-                <li>Design and implementation of a system for remote controlling of light Spring 2015</li>
-                <ul>
-                    <li>Using AVR ATMEGA-16 , a remote controller to turn on or turn off the light, and the feature to adjust the luminous intensity as the course of "Microprocessor Lab". This system included a PCB module that has been designed using Altium Designer software.A remote controller was used to select a LED and also to adjust its luminous intensity. A software PWM was generated in C language to do this.</li>
-                </ul>
-                <li>Design and Implementation of "TETRIS" on FPGA Fall 2014</li>
-                <ul>
-                    <li>Using C programming language and soft core processor of Microblaze to implement a game called
-                        "TETRIS" on FPGA(Xilinx ml507). A user interface was designed using JAVA language and implemented on PC to get the data from user and display it after the process was done on FPGA. The Tetris Game was written in C language and implemented on FPGA.The connection between PC and FPGA was established by ethernet and using UDP and ARP protocol.ARP and UDP protocol was also implemented by C language.</li>
-                </ul>
-                <li>Implementation of HDLC Protocol Spring 2014</li>
-                <ul>
-                    <li>Using Java programming language to implement "HDLC Protocol" as the course of "Computer
-                        Network II". In this project, frame generating that is included data bit stuffing, CRC and control bits implemented and then I made one station between Server and Client that can change frame’s bits with a specific probability.</li>
-                </ul>
-                <li>Design and Implementation of Half Adder Gate Spring 2014</li>
-                <ul>
-                    <li>Using Cadence ICFB software to implement a Half Adder as the course of "VLSI Systems Design".
-                        First I designed a Nand and an Inverter Standard Cell and then I implemented HA with these Standard Cells.</li>
-                </ul>
-                <li>Implementation of "Multiplier", "Divider" and "Radical" Module Fall 2013</li>
-                <ul>
-                    <li>Using HSpice language to implement three modules as the course of "Digital Electronics". We
-                        tried to implement these modules with low power consumption and low propagation delay.</li>
-                </ul>
-                <li>Design and Implementation of "FTP Client" Fall 2013</li>
-                <ul>
-                    <li>Using Java programming language to design and implement a "FTP Client" as the course of
-                        "Computer Network I". The ftp client can connect to every ftp server and do whatever a user need to do with a FTP server, such as list the user’s files, delete file, make new folder, upload to server, download from server, etc.</li>
-                </ul>
-                <li>Design and Implementation of a Web Site for Sport news Fall 2014</li>
-                <ul>
-                    <li>Using HTML, CSS language to design and implement client side of a web site and PHP, JavaScript, XML and JQUERY to implement the server side of a dynamic website for news as the course of "Internet Engineering".</li>
-                </ul>
-                <li>Age of Empires, Spring and Summer 2012</li>
-                <ul>
-                    <li>A Java (Swing) based multi thread video game as Advanced Programming course project</li>
-                </ul>
-
-            </ul>
-
-            <br>
-            <h2 id="pres" class="title">Work Experiences:</h2>
-            <ul>
-                <li>Commonroad group , Chair of Robotics and Autonomous Driving at Technical University of
-                    Munich. Winter 2018</li>
-                <li> Motius Company,Munich. Fall 2018</li>
-                <li> Quiz of King Game, PalangCo. (​ https://quizofkings.com/ )Jan 2017- Feb 2018</li>
-                <li>Digital System Design Group InternShip June 2014 .September 2014
-                </li>
-                <li>Research Center of Communication and Information Technology of AUT (Researcher)November2015-Present
-                </li>
-                  </ul>
-
-            <br>
-
-
-
-        </div>
-    </div>
-    <div id="sidebar">
-        <div class="side-box">
-
-        </div>
-        <div class="side-box">
-            <a class="t-link" href="Navid_Mirnouri.pdf" target="_blank"><h2 class="box-title">My CV</h2></a>
-            <div class="box-content">
-                You can download my CV from <a href="Navid_Mirnouri.pdf">here</a>
-                <br>
+    
+    <div class="knowledge-graph" id="knowledge-graph">
+        <div class="legend">
+            <h3>Knowledge Types</h3>
+            <div class="legend-item">
+                <div class="legend-color" style="background: #ff6b6b;"></div>
+                <span><strong>Core Identity</strong></span>
+            </div>
+            <div class="legend-item">
+                <div class="legend-color" style="background: #4ecdc4;"></div>
+                <span><strong>Domain Expertise</strong></span>
+            </div>
+            <div class="legend-item">
+                <div class="legend-color" style="background: #45b7d1;"></div>
+                <span><strong>Technologies</strong></span>
+            </div>
+            <div class="legend-item">
+                <div class="legend-color" style="background: #96ceb4;"></div>
+                <span><strong>Active Projects</strong></span>
+            </div>
+            <div class="legend-item">
+                <div class="legend-color" style="background: #feca57;"></div>
+                <span><strong>Key Skills</strong></span>
             </div>
         </div>
-        <div class="side-box">
-            <a class="t-link" href="http://www.aut.ac.ir/www/aut/main/" target="_blank"><h2 class="box-title">Amirkabir University of Technology</h2></a>
-            <div class="box-content">
-                Amirkabir University of Technology (AUT), formerly called the Tehran Polytechnic, is a public research university located in Tehran, Iran.
-                <br>AUT is one of the most prestigious universities, and the first established technical university in Iran, referred to as "Mother of Industrial Universities".
-
-                <br><br><a id="rank" href="http://www.usnews.com/education/best-global-universities/computer-science?page=9" target="_blank">U.S. News, Best Global Universities in Computer Science </a>
-                <br>Amirkabir University of Technology: 90
-				<br>(Top Iranian university in the list)
-
-            </div>
+        
+        <div class="instructions">
+            <h4>🎮 How to Explore:</h4>
+            <ul style="margin: 0; padding-left: 20px;">
+                <li><strong>Drag</strong> nodes to reorganize</li>
+                <li><strong>Hover</strong> for zoom effects</li>
+                <li><strong>Thick lines</strong> = strong connections</li>
+                <li><strong>Node size</strong> = importance level</li>
+            </ul>
         </div>
-
     </div>
-</div>
-<!-- Start of StatCounter Code for Default Guide -->
 
-<!-- End of StatCounter Code for Default Guide -->
+    <script>
+        // Knowledge Graph Data
+        const nodes = [
+            // Core Identity
+            { id: "navid", name: "Navid\nMirnouri", type: "core", size: 30 },
+            
+            // Domain Expertise
+            { id: "healthcare", name: "Healthcare\nAI", type: "domain", size: 22 },
+            { id: "nlp", name: "Natural Language\nProcessing", type: "domain", size: 20 },
+            { id: "ethics", name: "AI Ethics &\nAlignment", type: "domain", size: 18 },
+            { id: "edge-ai", name: "Edge AI\nDeployment", type: "domain", size: 18 },
+            { id: "systems", name: "Systems\nArchitecture", type: "domain", size: 17 },
+            
+            // Technologies
+            { id: "python", name: "Python", type: "tech", size: 20 },
+            { id: "pytorch", name: "PyTorch", type: "tech", size: 18 },
+            { id: "bert", name: "BERT", type: "tech", size: 16 },
+            { id: "gpt", name: "GPT", type: "tech", size: 16 },
+            { id: "docker", name: "Docker", type: "tech", size: 15 },
+            { id: "typescript", name: "TypeScript", type: "tech", size: 15 },
+            { id: "react", name: "React\nNative", type: "tech", size: 14 },
+            { id: "golang", name: "Go", type: "tech", size: 14 },
+            { id: "c", name: "C", type: "tech", size: 13 },
+            { id: "rag", name: "RAG", type: "tech", size: 15 },
+            
+            // Active Projects
+            { id: "society-network", name: "Society as\nNeural Network", type: "project", size: 20 },
+            { id: "llm-embedded", name: "LLM on\nEdge Hardware", type: "project", size: 19 },
+            { id: "rlhf-lab", name: "RLHF\nLaboratory", type: "project", size: 18 },
+            { id: "time-series", name: "Time Series\nAnalysis Lab", type: "project", size: 17 },
+            { id: "healthcare-qa", name: "Healthcare\nQA System", type: "project", size: 16 },
+            
+            // Key Skills
+            { id: "research", name: "Research &\nPublication", type: "skill", size: 17 },
+            { id: "observability", name: "System\nObservability", type: "skill", size: 15 },
+            { id: "multilingual", name: "Trilingual\nCommunication", type: "skill", size: 14 },
+            { id: "cross-cultural", name: "Cross-Cultural\nInnovation", type: "skill", size: 14 },
+            { id: "mentoring", name: "Technical\nMentoring", type: "skill", size: 13 },
+            { id: "compliance", name: "Regulatory\nCompliance", type: "skill", size: 13 }
+        ];
 
+        const links = [
+            // Core Identity Connections (Strong)
+            { source: "navid", target: "healthcare", strength: "strong" },
+            { source: "navid", target: "ethics", strength: "strong" },
+            { source: "navid", target: "nlp", strength: "strong" },
+            { source: "navid", target: "research", strength: "strong" },
+            
+            // Domain to Technology Connections
+            { source: "healthcare", target: "bert", strength: "strong" },
+            { source: "healthcare", target: "gpt", strength: "strong" },
+            { source: "healthcare", target: "python", strength: "normal" },
+            { source: "healthcare", target: "compliance", strength: "strong" },
+            
+            { source: "nlp", target: "bert", strength: "strong" },
+            { source: "nlp", target: "gpt", strength: "strong" },
+            { source: "nlp", target: "rag", strength: "strong" },
+            { source: "nlp", target: "pytorch", strength: "normal" },
+            
+            { source: "edge-ai", target: "pytorch", strength: "normal" },
+            { source: "edge-ai", target: "c", strength: "normal" },
+            { source: "edge-ai", target: "python", strength: "normal" },
+            
+            { source: "systems", target: "docker", strength: "strong" },
+            { source: "systems", target: "observability", strength: "strong" },
+            { source: "systems", target: "python", strength: "normal" },
+            { source: "systems", target: "golang", strength: "normal" },
+            
+            // Project Connections
+            { source: "society-network", target: "ethics", strength: "strong" },
+            { source: "society-network", target: "python", strength: "normal" },
+            { source: "society-network", target: "research", strength: "strong" },
+            
+            { source: "llm-embedded", target: "edge-ai", strength: "strong" },
+            { source: "llm-embedded", target: "pytorch", strength: "strong" },
+            { source: "llm-embedded", target: "c", strength: "normal" },
+            
+            { source: "rlhf-lab", target: "ethics", strength: "strong" },
+            { source: "rlhf-lab", target: "pytorch", strength: "normal" },
+            { source: "rlhf-lab", target: "python", strength: "normal" },
+            
+            { source: "time-series", target: "python", strength: "strong" },
+            { source: "time-series", target: "pytorch", strength: "normal" },
+            
+            { source: "healthcare-qa", target: "healthcare", strength: "strong" },
+            { source: "healthcare-qa", target: "nlp", strength: "strong" },
+            { source: "healthcare-qa", target: "rag", strength: "strong" },
+            
+            // Skill Interconnections
+            { source: "research", target: "multilingual", strength: "normal" },
+            { source: "observability", target: "systems", strength: "strong" },
+            { source: "cross-cultural", target: "multilingual", strength: "strong" },
+            { source: "cross-cultural", target: "ethics", strength: "normal" },
+            { source: "compliance", target: "healthcare", strength: "strong" },
+            
+            // Technology Interconnections
+            { source: "python", target: "pytorch", strength: "strong" },
+            { source: "typescript", target: "react", strength: "strong" },
+            { source: "bert", target: "gpt", strength: "normal" },
+            { source: "bert", target: "rag", strength: "normal" },
+            { source: "gpt", target: "rag", strength: "strong" },
+            
+            // Cross-domain Connections
+            { source: "healthcare", target: "ethics", strength: "strong" },
+            { source: "edge-ai", target: "systems", strength: "normal" },
+            { source: "nlp", target: "ethics", strength: "normal" }
+        ];
 
-</body></html>
+        // Set up the visualization
+        const container = document.getElementById('knowledge-graph');
+        const width = container.clientWidth || 1000;
+        const height = container.clientHeight || 600;
+        
+        const svg = d3.select("#knowledge-graph")
+            .append("svg")
+            .attr("width", width)
+            .attr("height", height);
+
+        // Initialize node positions randomly but within bounds
+        nodes.forEach(d => {
+            d.x = Math.random() * (width - 200) + 100;
+            d.y = Math.random() * (height - 200) + 100;
+        });
+
+        // Create simulation with better force balance
+        const simulation = d3.forceSimulation(nodes)
+            .force("link", d3.forceLink(links).id(d => d.id)
+                .distance(100)
+                .strength(0.7))
+            .force("charge", d3.forceManyBody()
+                .strength(-300)
+                .distanceMax(200))
+            .force("center", d3.forceCenter(width / 2, height / 2)
+                .strength(0.05))
+            .force("collision", d3.forceCollide()
+                .radius(d => d.size + 15)
+                .strength(0.8))
+            .force("bounds", () => {
+                nodes.forEach(d => {
+                    d.x = Math.max(d.size + 10, Math.min(width - d.size - 10, d.x));
+                    d.y = Math.max(d.size + 10, Math.min(height - d.size - 10, d.y));
+                });
+            });
+
+        // Create links
+        const link = svg.append("g")
+            .selectAll("line")
+            .data(links)
+            .enter().append("line")
+            .attr("class", d => d.strength === "strong" ? "link link-strong" : "link");
+
+        // Create nodes
+        const node = svg.append("g")
+            .selectAll("circle")
+            .data(nodes)
+            .enter().append("circle")
+            .attr("r", d => d.size)
+            .attr("class", d => `node-${d.type}`)
+            .style("cursor", "grab")
+            .call(d3.drag()
+                .on("start", dragstarted)
+                .on("drag", dragged)
+                .on("end", dragended));
+
+        // Add labels
+        const labels = svg.append("g")
+            .selectAll("text")
+            .data(nodes)
+            .enter().append("text")
+            .attr("class", "node-text")
+            .style("font-size", d => `${Math.max(10, d.size/2.5)}px`)
+            .selectAll("tspan")
+            .data(d => d.name.split('\n'))
+            .enter().append("tspan")
+            .attr("x", 0)
+            .attr("dy", (d, i) => i === 0 ? "0.35em" : "1.2em")
+            .text(d => d);
+
+        // Add enhanced hover effects
+        node.on("mouseover", function(event, d) {
+            d3.select(this)
+                .transition()
+                .duration(200)
+                .attr("r", d.size * 1.4)
+                .style("filter", "drop-shadow(5px 5px 10px rgba(0,0,0,0.4))");
+                
+            // Highlight connected nodes
+            const connectedNodes = new Set();
+            links.forEach(link => {
+                if (link.source.id === d.id) connectedNodes.add(link.target.id);
+                if (link.target.id === d.id) connectedNodes.add(link.source.id);
+            });
+            
+            node.style("opacity", n => connectedNodes.has(n.id) || n.id === d.id ? 1 : 0.3);
+            link.style("opacity", l => l.source.id === d.id || l.target.id === d.id ? 1 : 0.1);
+            
+        }).on("mouseout", function(event, d) {
+            d3.select(this)
+                .transition()
+                .duration(200)
+                .attr("r", d.size)
+                .style("filter", d => `drop-shadow(${d.type === 'core' ? '3px 3px 6px' : '2px 2px 4px'} rgba(0,0,0,0.3))`);
+                
+            // Reset opacity
+            node.style("opacity", 1);
+            link.style("opacity", l => l.strength === "strong" ? 0.8 : 0.6);
+        });
+
+        // Update positions on simulation tick with proper bounds checking
+        simulation.on("tick", () => {
+            // Constrain nodes to stay within bounds
+            nodes.forEach(d => {
+                d.x = Math.max(d.size + 20, Math.min(width - d.size - 20, d.x));
+                d.y = Math.max(d.size + 20, Math.min(height - d.size - 20, d.y));
+            });
+
+            link
+                .attr("x1", d => d.source.x)
+                .attr("y1", d => d.source.y)
+                .attr("x2", d => d.target.x)
+                .attr("y2", d => d.target.y);
+
+            node
+                .attr("cx", d => d.x)
+                .attr("cy", d => d.y);
+                
+            labels
+                .attr("transform", d => `translate(${d.x}, ${d.y})`);
+        });
+
+        // Restart simulation with alpha decay
+        simulation.alpha(1).alphaDecay(0.02).restart();
+
+        // Add a warm-up period for better initial positioning
+        setTimeout(() => {
+            simulation.alpha(0.3).restart();
+        }, 1000);
+
+        // Drag functions
+        function dragstarted(event, d) {
+            if (!event.active) simulation.alphaTarget(0.3).restart();
+            d.fx = d.x;
+            d.fy = d.y;
+            d3.select(this).style("cursor", "grabbing");
+        }
+
+        function dragged(event, d) {
+            d.fx = event.x;
+            d.fy = event.y;
+        }
+
+        function dragended(event, d) {
+            if (!event.active) simulation.alphaTarget(0);
+            d.fx = null;
+            d.fy = null;
+            d3.select(this).style("cursor", "grab");
+        }
+
+        // Responsive resize with proper repositioning
+        window.addEventListener('resize', () => {
+            const newWidth = container.clientWidth || 1000;
+            const newHeight = container.clientHeight || 600;
+            
+            svg.attr("width", newWidth).attr("height", newHeight);
+            
+            // Update simulation forces
+            simulation
+                .force("center", d3.forceCenter(newWidth / 2, newHeight / 2))
+                .force("bounds", () => {
+                    nodes.forEach(d => {
+                        d.x = Math.max(d.size + 10, Math.min(newWidth - d.size - 10, d.x));
+                        d.y = Math.max(d.size + 10, Math.min(newHeight - d.size - 10, d.y));
+                    });
+                });
+            
+            simulation.alpha(0.3).restart();
+        });
+
+        // Add a reset button for debugging
+        const resetButton = d3.select("#knowledge-graph")
+            .append("button")
+            .style("position", "absolute")
+            .style("bottom", "150px")
+            .style("left", "20px")
+            .style("padding", "10px 15px")
+            .style("background", "rgba(255,255,255,0.9)")
+            .style("border", "none")
+            .style("border-radius", "5px")
+            .style("cursor", "pointer")
+            .text("🔄 Reset Layout")
+            .on("click", () => {
+                // Randomize positions and restart
+                nodes.forEach(d => {
+                    d.x = Math.random() * (width - 200) + 100;
+                    d.y = Math.random() * (height - 200) + 100;
+                    d.fx = null;
+                    d.fy = null;
+                });
+                simulation.alpha(1).restart();
+            });
+
+        // Add pulsing animation for core node
+        function pulse() {
+            node.filter(d => d.type === "core")
+                .transition()
+                .duration(2000)
+                .attr("r", d => d.size * 1.1)
+                .transition()
+                .duration(2000)
+                .attr("r", d => d.size)
+                .on("end", pulse);
+        }
+        
+        // Start pulsing after initial layout
+        setTimeout(pulse, 3000);
+        
+    </script>
+</body>
+</html>
