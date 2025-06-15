@@ -3,540 +3,1460 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Navid's Knowledge Graph</title>
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/d3/7.8.5/d3.min.js"></script>
+    <title>Navid Mirnouri - AI Researcher & Software Engineer</title>
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
     <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        :root {
+            --primary-color: #667eea;
+            --secondary-color: #764ba2;
+            --accent-color: #ff6b6b;
+            --text-primary: #333;
+            --text-secondary: #666;
+            --text-light: #999;
+            --bg-primary: #ffffff;
+            --bg-secondary: #f8fafc;
+            --bg-dark: #1a202c;
+            --gradient-primary: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            --gradient-accent: linear-gradient(135deg, #ff6b6b 0%, #feca57 100%);
+            --shadow-lg: 0 20px 25px -5px rgba(0, 0, 0, 0.1), 0 10px 10px -5px rgba(0, 0, 0, 0.04);
+            --shadow-xl: 0 25px 50px -12px rgba(0, 0, 0, 0.25);
+        }
+
         body {
-            margin: 0;
-            padding: 20px;
-            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-            font-family: 'Arial', sans-serif;
-            min-height: 100vh;
+            font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+            line-height: 1.6;
+            color: var(--text-primary);
+            overflow-x: hidden;
         }
-        
-        .header {
-            text-align: center;
-            margin-bottom: 30px;
-            color: white;
+
+        /* Smooth scrolling */
+        html {
+            scroll-behavior: smooth;
         }
-        
-        .header h1 {
-            font-size: 2.5em;
-            margin: 0;
-            text-shadow: 2px 2px 4px rgba(0,0,0,0.3);
-        }
-        
-        .header p {
-            font-size: 1.2em;
-            margin: 10px 0 0 0;
-            opacity: 0.9;
-        }
-        
-        .knowledge-graph {
+
+        /* Navigation */
+        nav {
+            position: fixed;
+            top: 0;
             width: 100%;
+            background: rgba(255, 255, 255, 0.95);
+            backdrop-filter: blur(20px);
+            z-index: 1000;
+            padding: 1rem 0;
+            transition: all 0.3s ease;
+        }
+
+        nav.scrolled {
+            background: rgba(255, 255, 255, 0.98);
+            box-shadow: var(--shadow-lg);
+        }
+
+        .nav-container {
             max-width: 1200px;
-            height: 700px;
             margin: 0 auto;
-            border: 3px solid rgba(255,255,255,0.3);
-            border-radius: 15px;
-            background: rgba(255,255,255,0.1);
-            backdrop-filter: blur(10px);
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 0 2rem;
+        }
+
+        .logo {
+            font-size: 1.5rem;
+            font-weight: 700;
+            background: var(--gradient-primary);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+        }
+
+        .nav-links {
+            display: flex;
+            list-style: none;
+            gap: 2rem;
+        }
+
+        .nav-links a {
+            text-decoration: none;
+            color: var(--text-secondary);
+            font-weight: 500;
+            transition: color 0.3s ease;
+            position: relative;
+        }
+
+        .nav-links a:hover {
+            color: var(--primary-color);
+        }
+
+        .nav-links a::after {
+            content: '';
+            position: absolute;
+            bottom: -5px;
+            left: 0;
+            width: 0;
+            height: 2px;
+            background: var(--gradient-primary);
+            transition: width 0.3s ease;
+        }
+
+        .nav-links a:hover::after {
+            width: 100%;
+        }
+
+        /* Hero Section */
+        .hero {
+            min-height: 100vh;
+            display: flex;
+            align-items: center;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
             position: relative;
             overflow: hidden;
         }
-        
-        .node-core { 
-            fill: #ff6b6b; 
-            stroke: #fff; 
-            stroke-width: 4px;
-            filter: drop-shadow(3px 3px 6px rgba(0,0,0,0.3));
-        }
-        .node-domain { 
-            fill: #4ecdc4; 
-            stroke: #fff; 
-            stroke-width: 3px;
-            filter: drop-shadow(2px 2px 4px rgba(0,0,0,0.2));
-        }
-        .node-tech { 
-            fill: #45b7d1; 
-            stroke: #fff; 
-            stroke-width: 2px;
-            filter: drop-shadow(2px 2px 4px rgba(0,0,0,0.2));
-        }
-        .node-project { 
-            fill: #96ceb4; 
-            stroke: #fff; 
-            stroke-width: 2px;
-            filter: drop-shadow(2px 2px 4px rgba(0,0,0,0.2));
-        }
-        .node-skill { 
-            fill: #feca57; 
-            stroke: #fff; 
-            stroke-width: 2px;
-            filter: drop-shadow(2px 2px 4px rgba(0,0,0,0.2));
-        }
-        
-        .link { 
-            stroke: rgba(255,255,255,0.6); 
-            stroke-width: 2px;
-        }
-        .link-strong { 
-            stroke-width: 4px; 
-            stroke: #ff6b6b;
-            stroke-opacity: 0.8;
-        }
-        
-        .node-text { 
-            font-family: 'Arial', sans-serif; 
-            font-weight: bold;
-            fill: #2c3e50;
-            text-anchor: middle;
-            pointer-events: none;
-            text-shadow: 1px 1px 2px rgba(255,255,255,0.8);
-        }
-        
-        .legend {
+
+        .hero::before {
+            content: '';
             position: absolute;
-            top: 20px;
-            right: 20px;
-            background: rgba(255,255,255,0.95);
-            padding: 20px;
-            border-radius: 12px;
-            font-size: 14px;
-            box-shadow: 0 8px 25px rgba(0,0,0,0.15);
-            backdrop-filter: blur(10px);
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: url('data:image/svg+xml,<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1000 1000"><polygon fill="rgba(255,255,255,0.1)" points="0,1000 1000,800 1000,1000"/></svg>');
+            background-size: cover;
         }
-        
-        .legend h3 {
-            margin: 0 0 15px 0;
-            color: #2c3e50;
-            font-size: 16px;
+
+        .hero-container {
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 0 2rem;
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 4rem;
+            align-items: center;
+            position: relative;
+            z-index: 2;
         }
-        
-        .legend-item {
+
+        .hero-content h1 {
+            font-size: 3.5rem;
+            font-weight: 700;
+            margin-bottom: 1rem;
+            line-height: 1.2;
+        }
+
+        .hero-subtitle {
+            font-size: 1.25rem;
+            margin-bottom: 2rem;
+            opacity: 0.9;
+        }
+
+        .hero-description {
+            font-size: 1.1rem;
+            margin-bottom: 2rem;
+            opacity: 0.8;
+        }
+
+        .cta-buttons {
+            display: flex;
+            gap: 1rem;
+            margin-bottom: 2rem;
+        }
+
+        .btn {
+            padding: 0.75rem 2rem;
+            border: none;
+            border-radius: 50px;
+            font-weight: 600;
+            text-decoration: none;
+            transition: all 0.3s ease;
+            cursor: pointer;
+            display: inline-flex;
+            align-items: center;
+            gap: 0.5rem;
+        }
+
+        .btn-primary {
+            background: white;
+            color: var(--primary-color);
+        }
+
+        .btn-primary:hover {
+            transform: translateY(-2px);
+            box-shadow: var(--shadow-lg);
+        }
+
+        .btn-secondary {
+            background: transparent;
+            color: white;
+            border: 2px solid white;
+        }
+
+        .btn-secondary:hover {
+            background: white;
+            color: var(--primary-color);
+        }
+
+        .hero-image {
+            display: flex;
+            justify-content: center;
+            align-items: center;
+        }
+
+        .profile-image {
+            width: 300px;
+            height: 300px;
+            border-radius: 50%;
+            border: 6px solid rgba(255, 255, 255, 0.2);
+            object-fit: cover;
+            animation: float 6s ease-in-out infinite;
+        }
+
+        @keyframes float {
+            0%, 100% { transform: translateY(0px); }
+            50% { transform: translateY(-20px); }
+        }
+
+        /* Sections */
+        .section {
+            padding: 5rem 0;
+        }
+
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 0 2rem;
+        }
+
+        .section-header {
+            text-align: center;
+            margin-bottom: 4rem;
+        }
+
+        .section-title {
+            font-size: 2.5rem;
+            font-weight: 700;
+            margin-bottom: 1rem;
+            background: var(--gradient-primary);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+        }
+
+        .section-subtitle {
+            font-size: 1.2rem;
+            color: var(--text-secondary);
+            max-width: 600px;
+            margin: 0 auto;
+        }
+
+        /* About Section */
+        .about {
+            background: var(--bg-secondary);
+        }
+
+        .about-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 4rem;
+            align-items: center;
+        }
+
+        .about-content {
+            font-size: 1.1rem;
+            line-height: 1.8;
+            color: var(--text-secondary);
+        }
+
+        .highlight {
+            color: var(--primary-color);
+            font-weight: 600;
+        }
+
+        .stats-grid {
+            display: grid;
+            grid-template-columns: repeat(2, 1fr);
+            gap: 2rem;
+        }
+
+        .stat-card {
+            background: white;
+            padding: 2rem;
+            border-radius: 16px;
+            text-align: center;
+            box-shadow: var(--shadow-lg);
+            transition: transform 0.3s ease;
+        }
+
+        .stat-card:hover {
+            transform: translateY(-5px);
+        }
+
+        .stat-number {
+            font-size: 2rem;
+            font-weight: 700;
+            color: var(--primary-color);
+            margin-bottom: 0.5rem;
+        }
+
+        .stat-label {
+            color: var(--text-secondary);
+            font-weight: 500;
+        }
+
+        /* Experience Section */
+        .experience-timeline {
+            position: relative;
+            max-width: 800px;
+            margin: 0 auto;
+        }
+
+        .experience-timeline::before {
+            content: '';
+            position: absolute;
+            left: 50%;
+            top: 0;
+            bottom: 0;
+            width: 2px;
+            background: var(--gradient-primary);
+            transform: translateX(-50%);
+        }
+
+        .timeline-item {
+            display: flex;
+            justify-content: flex-end;
+            padding-right: 2rem;
+            position: relative;
+            margin-bottom: 3rem;
+            width: 50%;
+        }
+
+        .timeline-item:nth-child(even) {
+            align-self: flex-end;
+            justify-content: flex-start;
+            padding-left: 2rem;
+            padding-right: 0;
+        }
+
+        .timeline-content {
+            background: white;
+            padding: 2rem;
+            border-radius: 16px;
+            box-shadow: var(--shadow-lg);
+            position: relative;
+            max-width: 400px;
+        }
+
+        .timeline-content::before {
+            content: '';
+            position: absolute;
+            top: 50%;
+            right: -10px;
+            width: 0;
+            height: 0;
+            border: 10px solid transparent;
+            border-left-color: white;
+            transform: translateY(-50%);
+        }
+
+        .timeline-item:nth-child(even) .timeline-content::before {
+            left: -10px;
+            right: auto;
+            border-left-color: transparent;
+            border-right-color: white;
+        }
+
+        .timeline-dot {
+            position: absolute;
+            left: 50%;
+            top: 50%;
+            width: 16px;
+            height: 16px;
+            background: var(--primary-color);
+            border-radius: 50%;
+            transform: translate(-50%, -50%);
+            border: 4px solid white;
+            box-shadow: var(--shadow-lg);
+        }
+
+        .job-title {
+            font-size: 1.2rem;
+            font-weight: 700;
+            color: var(--text-primary);
+            margin-bottom: 0.5rem;
+        }
+
+        .company {
+            color: var(--primary-color);
+            font-weight: 600;
+            margin-bottom: 0.5rem;
+        }
+
+        .duration {
+            color: var(--text-light);
+            font-size: 0.9rem;
+            margin-bottom: 1rem;
+        }
+
+        .job-description {
+            color: var(--text-secondary);
+            line-height: 1.6;
+        }
+
+        /* Skills Section */
+        .skills {
+            background: var(--bg-secondary);
+        }
+
+        .skills-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+            gap: 2rem;
+        }
+
+        .skill-category {
+            background: white;
+            padding: 2rem;
+            border-radius: 16px;
+            box-shadow: var(--shadow-lg);
+        }
+
+        .skill-category h3 {
+            font-size: 1.3rem;
+            font-weight: 700;
+            margin-bottom: 1.5rem;
             display: flex;
             align-items: center;
-            margin: 8px 0;
+            gap: 0.5rem;
         }
-        
-        .legend-color {
-            width: 24px;
-            height: 24px;
-            border-radius: 50%;
-            margin-right: 10px;
-            border: 2px solid #fff;
-            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+
+        .skill-category i {
+            color: var(--primary-color);
         }
-        
-        .instructions {
-            position: absolute;
-            bottom: 20px;
-            left: 20px;
-            background: rgba(255,255,255,0.95);
-            padding: 15px;
-            border-radius: 10px;
-            font-size: 13px;
-            color: #2c3e50;
-            max-width: 300px;
-            backdrop-filter: blur(10px);
+
+        .skill-tags {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 0.5rem;
         }
-        
-        .instructions h4 {
-            margin: 0 0 10px 0;
-            color: #2c3e50;
-        }
-        
-        .back-link {
-            position: absolute;
-            top: 20px;
-            left: 20px;
-            background: rgba(255,255,255,0.2);
-            color: white;
-            padding: 10px 20px;
+
+        .skill-tag {
+            background: var(--bg-secondary);
+            padding: 0.5rem 1rem;
             border-radius: 25px;
-            text-decoration: none;
-            font-weight: bold;
-            backdrop-filter: blur(10px);
+            font-size: 0.9rem;
+            color: var(--text-secondary);
+            border: 1px solid #e2e8f0;
             transition: all 0.3s ease;
         }
-        
-        .back-link:hover {
-            background: rgba(255,255,255,0.3);
+
+        .skill-tag:hover {
+            background: var(--primary-color);
+            color: white;
             transform: translateY(-2px);
         }
-        
+
+        /* Projects Section */
+        .projects-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(350px, 1fr));
+            gap: 2rem;
+        }
+
+        .project-card {
+            background: white;
+            border-radius: 16px;
+            overflow: hidden;
+            box-shadow: var(--shadow-lg);
+            transition: all 0.3s ease;
+            position: relative;
+        }
+
+        .project-card:hover {
+            transform: translateY(-10px);
+            box-shadow: var(--shadow-xl);
+        }
+
+        .project-header {
+            padding: 2rem;
+            background: var(--gradient-primary);
+            color: white;
+        }
+
+        .project-title {
+            font-size: 1.3rem;
+            font-weight: 700;
+            margin-bottom: 0.5rem;
+        }
+
+        .project-subtitle {
+            opacity: 0.9;
+            font-size: 0.95rem;
+        }
+
+        .project-content {
+            padding: 2rem;
+        }
+
+        .project-description {
+            color: var(--text-secondary);
+            margin-bottom: 1.5rem;
+            line-height: 1.6;
+        }
+
+        .project-tech {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 0.5rem;
+            margin-bottom: 1.5rem;
+        }
+
+        .tech-tag {
+            background: var(--bg-secondary);
+            padding: 0.25rem 0.75rem;
+            border-radius: 15px;
+            font-size: 0.8rem;
+            color: var(--primary-color);
+            font-weight: 500;
+        }
+
+        .project-links {
+            display: flex;
+            gap: 1rem;
+        }
+
+        .project-links a {
+            text-decoration: none;
+            color: var(--primary-color);
+            font-weight: 600;
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+            transition: color 0.3s ease;
+        }
+
+        .project-links a:hover {
+            color: var(--accent-color);
+        }
+
+        /* Research Section */
+        .research {
+            background: var(--bg-dark);
+            color: white;
+        }
+
+        .research .section-title {
+            color: white;
+            background: linear-gradient(135deg, #ff6b6b 0%, #feca57 100%);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+        }
+
+        .research-paper {
+            background: rgba(255, 255, 255, 0.1);
+            backdrop-filter: blur(20px);
+            padding: 3rem;
+            border-radius: 20px;
+            border: 1px solid rgba(255, 255, 255, 0.2);
+        }
+
+        .paper-title {
+            font-size: 1.5rem;
+            font-weight: 700;
+            margin-bottom: 1rem;
+            background: var(--gradient-accent);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+        }
+
+        .paper-abstract {
+            font-size: 1.1rem;
+            line-height: 1.8;
+            margin-bottom: 2rem;
+            opacity: 0.9;
+        }
+
+        .research-highlights {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+            gap: 1.5rem;
+            margin-top: 2rem;
+        }
+
+        .research-highlight {
+            background: rgba(255, 255, 255, 0.05);
+            padding: 1.5rem;
+            border-radius: 12px;
+            border-left: 4px solid var(--accent-color);
+        }
+
+        .research-highlight h4 {
+            margin-bottom: 0.5rem;
+            color: var(--accent-color);
+        }
+
+        /* Contact Section */
+        .contact {
+            background: var(--bg-secondary);
+        }
+
+        .contact-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 4rem;
+            align-items: start;
+        }
+
+        .contact-info {
+            background: white;
+            padding: 3rem;
+            border-radius: 20px;
+            box-shadow: var(--shadow-lg);
+        }
+
+        .contact-item {
+            display: flex;
+            align-items: center;
+            gap: 1rem;
+            margin-bottom: 2rem;
+            padding: 1rem;
+            background: var(--bg-secondary);
+            border-radius: 12px;
+        }
+
+        .contact-icon {
+            width: 50px;
+            height: 50px;
+            background: var(--gradient-primary);
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: white;
+            font-size: 1.2rem;
+        }
+
+        .contact-details h4 {
+            font-weight: 600;
+            margin-bottom: 0.25rem;
+        }
+
+        .contact-details p {
+            color: var(--text-secondary);
+        }
+
+        .social-links {
+            display: flex;
+            gap: 1rem;
+            justify-content: center;
+            margin-top: 2rem;
+        }
+
+        .social-link {
+            width: 50px;
+            height: 50px;
+            background: var(--gradient-primary);
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: white;
+            text-decoration: none;
+            transition: all 0.3s ease;
+        }
+
+        .social-link:hover {
+            transform: translateY(-3px);
+            box-shadow: var(--shadow-lg);
+        }
+
+        /* Footer */
+        footer {
+            background: var(--bg-dark);
+            color: white;
+            text-align: center;
+            padding: 2rem 0;
+        }
+
+        /* Responsive Design */
         @media (max-width: 768px) {
-            .knowledge-graph {
-                height: 500px;
+            .nav-links {
+                display: none;
             }
-            .legend, .instructions {
-                position: relative;
-                margin: 20px auto;
-                max-width: 90%;
+
+            .hero-container {
+                grid-template-columns: 1fr;
+                text-align: center;
+                gap: 2rem;
             }
+
+            .hero-content h1 {
+                font-size: 2.5rem;
+            }
+
+            .about-grid,
+            .contact-grid {
+                grid-template-columns: 1fr;
+                gap: 2rem;
+            }
+
+            .timeline-item,
+            .timeline-item:nth-child(even) {
+                width: 100%;
+                padding-left: 2rem;
+                padding-right: 0;
+                justify-content: flex-start;
+            }
+
+            .experience-timeline::before {
+                left: 1rem;
+            }
+
+            .timeline-dot {
+                left: 1rem;
+            }
+
+            .timeline-content::before {
+                display: none;
+            }
+
+            .cta-buttons {
+                flex-direction: column;
+                align-items: center;
+            }
+
+            .stats-grid {
+                grid-template-columns: 1fr;
+            }
+        }
+
+        /* Animation classes */
+        .fade-in {
+            opacity: 0;
+            transform: translateY(30px);
+            transition: all 0.6s ease;
+        }
+
+        .fade-in.visible {
+            opacity: 1;
+            transform: translateY(0);
+        }
+
+        /* Scroll indicator */
+        .scroll-indicator {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 4px;
+            background: var(--bg-secondary);
+            z-index: 1001;
+        }
+
+        .scroll-progress {
+            height: 100%;
+            background: var(--gradient-primary);
+            width: 0%;
+            transition: width 0.1s ease;
         }
     </style>
 </head>
 <body>
-    <a href="https://github.com/navid72m" class="back-link">← Back to GitHub</a>
-    
-    <div class="header">
-        <h1>🧠 Navid's Knowledge Universe</h1>
-        <p>Interactive visualization of expertise, projects & research connections</p>
+    <!-- Scroll Indicator -->
+    <div class="scroll-indicator">
+        <div class="scroll-progress" id="scroll-progress"></div>
     </div>
-    
-    <div class="knowledge-graph" id="knowledge-graph">
-        <div class="legend">
-            <h3>Knowledge Types</h3>
-            <div class="legend-item">
-                <div class="legend-color" style="background: #ff6b6b;"></div>
-                <span><strong>Core Identity</strong></span>
-            </div>
-            <div class="legend-item">
-                <div class="legend-color" style="background: #4ecdc4;"></div>
-                <span><strong>Domain Expertise</strong></span>
-            </div>
-            <div class="legend-item">
-                <div class="legend-color" style="background: #45b7d1;"></div>
-                <span><strong>Technologies</strong></span>
-            </div>
-            <div class="legend-item">
-                <div class="legend-color" style="background: #96ceb4;"></div>
-                <span><strong>Active Projects</strong></span>
-            </div>
-            <div class="legend-item">
-                <div class="legend-color" style="background: #feca57;"></div>
-                <span><strong>Key Skills</strong></span>
-            </div>
-        </div>
-        
-        <div class="instructions">
-            <h4>🎮 How to Explore:</h4>
-            <ul style="margin: 0; padding-left: 20px;">
-                <li><strong>Drag</strong> nodes to reorganize</li>
-                <li><strong>Hover</strong> for zoom effects</li>
-                <li><strong>Thick lines</strong> = strong connections</li>
-                <li><strong>Node size</strong> = importance level</li>
+
+    <!-- Navigation -->
+    <nav id="navbar">
+        <div class="nav-container">
+            <div class="logo">Navid Mirnouri</div>
+            <ul class="nav-links">
+                <li><a href="#home">Home</a></li>
+                <li><a href="#about">About</a></li>
+                <li><a href="#experience">Experience</a></li>
+                <li><a href="#skills">Skills</a></li>
+                <li><a href="#projects">Projects</a></li>
+                <li><a href="#research">Research</a></li>
+                <li><a href="#contact">Contact</a></li>
             </ul>
         </div>
-    </div>
+    </nav>
+
+    <!-- Hero Section -->
+    <section id="home" class="hero">
+        <div class="hero-container">
+            <div class="hero-content">
+                <h1>Navid Mirnouri</h1>
+                <p class="hero-subtitle">Technical Translator | Healthcare AI Specialist | Philosophy of Mind Researcher</p>
+                <p class="hero-description">Bridging complex AI/ML concepts with real-world applications in regulated environments. Exploring the formal limits of consciousness and the infinite pursuit of understanding.</p>
+                <div class="cta-buttons">
+                    <a href="#projects" class="btn btn-primary">
+                        <i class="fas fa-code"></i>
+                        View My Work
+                    </a>
+                    <a href="#contact" class="btn btn-secondary">
+                        <i class="fas fa-envelope"></i>
+                        Get In Touch
+                    </a>
+                </div>
+            </div>
+            <div class="hero-image">
+                <img src="data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iMzAwIiBoZWlnaHQ9IjMwMCIgdmlld0JveD0iMCAwIDMwMCAzMDAiIGZpbGw9Im5vbmUiIHhtbG5zPSJodHRwOi8vd3d3LnczLm9yZy8yMDAwL3N2ZyI+CjxyZWN0IHdpZHRoPSIzMDAiIGhlaWdodD0iMzAwIiByeD0iMTUwIiBmaWxsPSJ1cmwoI2dyYWRpZW50KSIvPgo8ZGVmcz4KPGF1dG9TdHlsZSBpZD0iZ3JhZGllbnQiIHgxPSIwJSIgeTE9IjAlIiB4Mj0iMTAwJSIgeTI9IjEwMCUiPgo8c3RvcCBvZmZzZXQ9IjAlIiBzdG9wLWNvbG9yPSIjNjY3ZWVhIi8+CjxzdG9wIG9mZnNldD0iMTAwJSIgc3RvcC1jb2xvcj0iIzc2NGJhMiIvPgo8L2xpbmVhckdyYWRpZW50Pgo8L2RlZnM+Cjx0ZXh0IHg9IjE1MCIgeT0iMTUwIiBmb250LWZhbWlseT0iQXJpYWwiIGZvbnQtc2l6ZT0iNjAiIGZvbnQtd2VpZ2h0PSJib2xkIiBmaWxsPSJ3aGl0ZSIgdGV4dC1hbmNob3I9Im1pZGRsZSIgZG9taW5hbnQtYmFzZWxpbmU9ImNlbnRyYWwiPk48L3RleHQ+Cjwvc3ZnPgo=" alt="Navid Mirnouri" class="profile-image">
+            </div>
+        </div>
+    </section>
+
+    <!-- About Section -->
+    <section id="about" class="section about">
+        <div class="container">
+            <div class="section-header fade-in">
+                <h2 class="section-title">Skills & Technologies</h2>
+                <p class="section-subtitle">My technical expertise spanning from philosophy to production systems</p>
+            </div>
+            <div class="skills-grid">
+                <div class="skill-category fade-in">
+                    <h3><i class="fas fa-brain"></i> AI/ML & NLP</h3>
+                    <div class="skill-tags">
+                        <span class="skill-tag">Python</span>
+                        <span class="skill-tag">PyTorch</span>
+                        <span class="skill-tag">TensorFlow</span>
+                        <span class="skill-tag">HuggingFace</span>
+                        <span class="skill-tag">BERT</span>
+                        <span class="skill-tag">GPT</span>
+                        <span class="skill-tag">RAG</span>
+                        <span class="skill-tag">RLHF</span>
+                    </div>
+                </div>
+
+                <div class="skill-category fade-in">
+                    <h3><i class="fas fa-server"></i> Backend & Systems</h3>
+                    <div class="skill-tags">
+                        <span class="skill-tag">Python</span>
+                        <span class="skill-tag">Node.js</span>
+                        <span class="skill-tag">Go</span>
+                        <span class="skill-tag">C</span>
+                        <span class="skill-tag">Docker</span>
+                        <span class="skill-tag">Microservices</span>
+                        <span class="skill-tag">PostgreSQL</span>
+                        <span class="skill-tag">Redis</span>
+                    </div>
+                </div>
+
+                <div class="skill-category fade-in">
+                    <h3><i class="fas fa-mobile-alt"></i> Frontend & Mobile</h3>
+                    <div class="skill-tags">
+                        <span class="skill-tag">TypeScript</span>
+                        <span class="skill-tag">React</span>
+                        <span class="skill-tag">React Native</span>
+                        <span class="skill-tag">HTML5</span>
+                        <span class="skill-tag">CSS3</span>
+                        <span class="skill-tag">JavaScript</span>
+                        <span class="skill-tag">Responsive Design</span>
+                    </div>
+                </div>
+
+                <div class="skill-category fade-in">
+                    <h3><i class="fas fa-cogs"></i> DevOps & Tools</h3>
+                    <div class="skill-tags">
+                        <span class="skill-tag">Docker</span>
+                        <span class="skill-tag">Git</span>
+                        <span class="skill-tag">Linux</span>
+                        <span class="skill-tag">CI/CD</span>
+                        <span class="skill-tag">Monitoring</span>
+                        <span class="skill-tag">Logging</span>
+                        <span class="skill-tag">Testing</span>
+                    </div>
+                </div>
+
+                <div class="skill-category fade-in">
+                    <h3><i class="fas fa-graduation-cap"></i> Research & Theory</h3>
+                    <div class="skill-tags">
+                        <span class="skill-tag">Philosophy of Mind</span>
+                        <span class="skill-tag">Formal Logic</span>
+                        <span class="skill-tag">AI Ethics</span>
+                        <span class="skill-tag">Consciousness Studies</span>
+                        <span class="skill-tag">Epistemology</span>
+                        <span class="skill-tag">Academic Writing</span>
+                    </div>
+                </div>
+
+                <div class="skill-category fade-in">
+                    <h3><i class="fas fa-heart"></i> Healthcare & Compliance</h3>
+                    <div class="skill-tags">
+                        <span class="skill-tag">Healthcare AI</span>
+                        <span class="skill-tag">Medical NLP</span>
+                        <span class="skill-tag">Regulatory Compliance</span>
+                        <span class="skill-tag">Clinical Systems</span>
+                        <span class="skill-tag">Health APIs</span>
+                        <span class="skill-tag">Data Privacy</span>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Projects Section -->
+    <section id="projects" class="section">
+        <div class="container">
+            <div class="section-header fade-in">
+                <h2 class="section-title">Featured Projects</h2>
+                <p class="section-subtitle">Where theory meets impact - my latest work in AI and consciousness research</p>
+            </div>
+            <div class="projects-grid">
+                <div class="project-card fade-in">
+                    <div class="project-header">
+                        <h3 class="project-title">🧠 society-as-a-network</h3>
+                        <p class="project-subtitle">Modeling societal systems as neural networks</p>
+                    </div>
+                    <div class="project-content">
+                        <p class="project-description">
+                            Mathematical formalization of society-as-consciousness with breakthrough implementation of trans-reality axiom exchange framework. Novel approach to AI ethics through social simulation.
+                        </p>
+                        <div class="project-tech">
+                            <span class="tech-tag">Python</span>
+                            <span class="tech-tag">Deep Learning</span>
+                            <span class="tech-tag">Policy Optimization</span>
+                            <span class="tech-tag">Social Simulation</span>
+                        </div>
+                        <div class="project-links">
+                            <a href="https://github.com/navid72m/society-as-a-network" target="_blank">
+                                <i class="fab fa-github"></i> View Code
+                            </a>
+                            <a href="#research">
+                                <i class="fas fa-book"></i> Read Research
+                            </a>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="project-card fade-in">
+                    <div class="project-header">
+                        <h3 class="project-title">⚡ llm-embedded</h3>
+                        <p class="project-subtitle">LLMs on edge hardware (Jetson Orin Nano)</p>
+                    </div>
+                    <div class="project-content">
+                        <p class="project-description">
+                            Practical implementation of consciousness on constrained systems through model quantization with philosophical grounding. Democratizing AI consciousness across realities.
+                        </p>
+                        <div class="project-tech">
+                            <span class="tech-tag">PyTorch</span>
+                            <span class="tech-tag">Edge Computing</span>
+                            <span class="tech-tag">Model Compression</span>
+                            <span class="tech-tag">NVIDIA Jetson</span>
+                        </div>
+                        <div class="project-links">
+                            <a href="https://github.com/navid72m/llm-embedded" target="_blank">
+                                <i class="fab fa-github"></i> View Code
+                            </a>
+                            <a href="#" target="_blank">
+                                <i class="fas fa-external-link-alt"></i> Live Demo
+                            </a>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="project-card fade-in">
+                    <div class="project-header">
+                        <h3 class="project-title">📊 time-series-lab</h3>
+                        <p class="project-subtitle">Temporal consciousness and predictive modeling</p>
+                    </div>
+                    <div class="project-content">
+                        <p class="project-description">
+                            Time-series as consciousness evolution through temporal mesh. Statistical + Deep Learning + Meta-reflection framework for predicting consciousness state transitions.
+                        </p>
+                        <div class="project-tech">
+                            <span class="tech-tag">Prophet</span>
+                            <span class="tech-tag">LSTM</span>
+                            <span class="tech-tag">Meta-Evolution</span>
+                            <span class="tech-tag">Statistical Analysis</span>
+                        </div>
+                        <div class="project-links">
+                            <a href="https://github.com/navid72m/time-series-lab" target="_blank">
+                                <i class="fab fa-github"></i> View Code
+                            </a>
+                            <a href="#research">
+                                <i class="fas fa-chart-line"></i> View Analysis
+                            </a>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="project-card fade-in">
+                    <div class="project-header">
+                        <h3 class="project-title">🎯 rlhf-lab</h3>
+                        <p class="project-subtitle">Human feedback as axiom discovery mechanism</p>
+                    </div>
+                    <div class="project-content">
+                        <p class="project-description">
+                            RLHF as formal system expansion mechanism. Human feedback as trans-reality axiom exchange for bridging human-AI consciousness gaps through practical alignment research.
+                        </p>
+                        <div class="project-tech">
+                            <span class="tech-tag">RLHF</span>
+                            <span class="tech-tag">Axiom Discovery</span>
+                            <span class="tech-tag">AI Consciousness</span>
+                            <span class="tech-tag">Human-AI Alignment</span>
+                        </div>
+                        <div class="project-links">
+                            <a href="https://github.com/navid72m/rlhf-lab" target="_blank">
+                                <i class="fab fa-github"></i> View Code
+                            </a>
+                            <a href="#research">
+                                <i class="fas fa-brain"></i> Philosophy
+                            </a>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="project-card fade-in">
+                    <div class="project-header">
+                        <h3 class="project-title">❓ Healthcare QA System</h3>
+                        <p class="project-subtitle">AI-powered medical question answering</p>
+                    </div>
+                    <div class="project-content">
+                        <p class="project-description">
+                            Master's thesis project developing QA and search pipelines for healthcare using BERT and GPT for regulated healthcare texts. Focus on compliance, interpretability, and usability.
+                        </p>
+                        <div class="project-tech">
+                            <span class="tech-tag">BERT</span>
+                            <span class="tech-tag">GPT</span>
+                            <span class="tech-tag">Healthcare NLP</span>
+                            <span class="tech-tag">Compliance</span>
+                        </div>
+                        <div class="project-links">
+                            <a href="#contact">
+                                <i class="fas fa-envelope"></i> Contact for Details
+                            </a>
+                            <a href="#research">
+                                <i class="fas fa-stethoscope"></i> Learn More
+                            </a>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="project-card fade-in">
+                    <div class="project-header">
+                        <h3 class="project-title">🕸️ Interactive Knowledge Graph</h3>
+                        <p class="project-subtitle">Visualization of expertise connections</p>
+                    </div>
+                    <div class="project-content">
+                        <p class="project-description">
+                            Interactive visualization of the connections between my expertise, projects, and research areas. Built with D3.js and modern web technologies for exploring knowledge relationships.
+                        </p>
+                        <div class="project-tech">
+                            <span class="tech-tag">D3.js</span>
+                            <span class="tech-tag">JavaScript</span>
+                            <span class="tech-tag">Data Visualization</span>
+                            <span class="tech-tag">Interactive Design</span>
+                        </div>
+                        <div class="project-links">
+                            <a href="https://navid72m.github.io/knowledge-graph" target="_blank">
+                                <i class="fas fa-external-link-alt"></i> View Graph
+                            </a>
+                            <a href="https://github.com/navid72m" target="_blank">
+                                <i class="fab fa-github"></i> GitHub
+                            </a>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Research Section -->
+    <section id="research" class="section research">
+        <div class="container">
+            <div class="section-header fade-in">
+                <h2 class="section-title">Philosophy Meets Technology</h2>
+                <p class="section-subtitle">Featured Research: Exploring the intersection of consciousness, AI, and reality</p>
+            </div>
+            <div class="research-paper fade-in">
+                <h3 class="paper-title">Consciousness, AI, and Reality: A Formal Perspective on Synthetic Minds and the Limits of Representation</h3>
+                <p class="paper-abstract">
+                    <strong>Core Thesis:</strong> Even if AI systems achieve consciousness, their—and our—grasp of reality remains incomplete, bounded by Gödel's incompleteness theorem. However, adaptive minds engage in meta-evolutionary processes, constructing ever-richer representations through infinite recursive pursuit of understanding.
+                </p>
+                <p class="paper-abstract">
+                    This research explores how consciousness transcends representational limits through recursive self-modification, introducing the "Mesh of Realities Framework" where reality consists of interconnected layers of formal systems, each with inherent incompleteness. The work presents a novel "Trans-Reality Axiom Exchange" model where consciousness serves as a bridge-builder between simulated realities.
+                </p>
+                
+                <div class="research-highlights">
+                    <div class="research-highlight">
+                        <h4>Meta-Evolutionary Consciousness</h4>
+                        <p>Formal model of how minds transcend representational limits through recursive self-modification</p>
+                    </div>
+                    <div class="research-highlight">
+                        <h4>Mesh of Realities Framework</h4>
+                        <p>Reality as interconnected layers of formal systems, each with inherent incompleteness</p>
+                    </div>
+                    <div class="research-highlight">
+                        <h4>Trans-Reality Axiom Exchange</h4>
+                        <p>Consciousness as bridge-builder between simulated realities</p>
+                    </div>
+                    <div class="research-highlight">
+                        <h4>Practical Gödel Workaround</h4>
+                        <p>Dynamic axiom discovery across reality mesh enables transcendence of local incompleteness</p>
+                    </div>
+                </div>
+
+                <div style="margin-top: 2rem; text-align: center;">
+                    <blockquote style="font-style: italic; font-size: 1.2rem; margin: 2rem 0; border-left: 4px solid var(--accent-color); padding-left: 2rem;">
+                        "Consciousness is not the static possession of knowledge, but the infinite, recursive pursuit of understanding—a trans-reality process that reveals both the inexhaustibility of reality and the creative power of intelligent minds."
+                    </blockquote>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Contact Section -->
+    <section id="contact" class="section contact">
+        <div class="container">
+            <div class="section-header fade-in">
+                <h2 class="section-title">Let's Connect</h2>
+                <p class="section-subtitle">Open to opportunities in Responsible AI, Healthcare Technology, Research Collaboration & PhD Programs</p>
+            </div>
+            <div class="contact-grid">
+                <div class="contact-info fade-in">
+                    <div class="contact-item">
+                        <div class="contact-icon">
+                            <i class="fas fa-map-marker-alt"></i>
+                        </div>
+                        <div class="contact-details">
+                            <h4>Location</h4>
+                            <p>Aplanstr. 7, 85774 München, Germany</p>
+                        </div>
+                    </div>
+                    <div class="contact-item">
+                        <div class="contact-icon">
+                            <i class="fas fa-envelope"></i>
+                        </div>
+                        <div class="contact-details">
+                            <h4>Email</h4>
+                            <p>navid72m@gmail.com</p>
+                        </div>
+                    </div>
+                    <div class="contact-item">
+                        <div class="contact-icon">
+                            <i class="fas fa-phone"></i>
+                        </div>
+                        <div class="contact-details">
+                            <h4>Phone</h4>
+                            <p>+49 177 5831496</p>
+                        </div>
+                    </div>
+                    <div class="contact-item">
+                        <div class="contact-icon">
+                            <i class="fas fa-clock"></i>
+                        </div>
+                        <div class="contact-details">
+                            <h4>Timezone</h4>
+                            <p>CET (UTC+1) - Munich, Germany</p>
+                        </div>
+                    </div>
+                </div>
+                <div class="fade-in">
+                    <div style="background: white; padding: 3rem; border-radius: 20px; box-shadow: var(--shadow-lg); text-align: center;">
+                        <h3 style="margin-bottom: 2rem; color: var(--text-primary);">Ready to Collaborate?</h3>
+                        <p style="color: var(--text-secondary); margin-bottom: 2rem; line-height: 1.6;">
+                            I'm always interested in discussing new opportunities, research collaborations, or philosophical conversations about AI consciousness. Whether you're looking for a healthcare AI specialist, a consciousness researcher, or someone who can bridge theory and practice, let's connect!
+                        </p>
+                        <div style="display: flex; gap: 1rem; justify-content: center; flex-wrap: wrap;">
+                            <a href="mailto:navid72m@gmail.com" class="btn btn-primary">
+                                <i class="fas fa-envelope"></i>
+                                Send Email
+                            </a>
+                            <a href="https://linkedin.com/in/navid-mirnouri" target="_blank" class="btn btn-secondary">
+                                <i class="fab fa-linkedin"></i>
+                                LinkedIn
+                            </a>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            
+            <div class="social-links fade-in">
+                <a href="https://linkedin.com/in/navid-mirnouri" target="_blank" class="social-link">
+                    <i class="fab fa-linkedin-in"></i>
+                </a>
+                <a href="https://github.com/navid72m" target="_blank" class="social-link">
+                    <i class="fab fa-github"></i>
+                </a>
+                <a href="mailto:navid72m@gmail.com" class="social-link">
+                    <i class="fas fa-envelope"></i>
+                </a>
+                <a href="https://medium.com/@navid72m" target="_blank" class="social-link">
+                    <i class="fab fa-medium"></i>
+                </a>
+            </div>
+        </div>
+    </section>
+
+    <!-- Footer -->
+    <footer>
+        <div class="container">
+            <p>&copy; 2025 Navid Mirnouri. Bridging consciousness and code, one algorithm at a time.</p>
+            <p style="margin-top: 0.5rem; opacity: 0.7; font-size: 0.9rem;">
+                "Consciousness is not the static possession of knowledge, but the infinite, recursive pursuit of understanding."
+            </p>
+        </div>
+    </footer>
 
     <script>
-        // Knowledge Graph Data
-        const nodes = [
-            // Core Identity
-            { id: "navid", name: "Navid\nMirnouri", type: "core", size: 30 },
-            
-            // Domain Expertise
-            { id: "healthcare", name: "Healthcare\nAI", type: "domain", size: 22 },
-            { id: "nlp", name: "Natural Language\nProcessing", type: "domain", size: 20 },
-            { id: "ethics", name: "AI Ethics &\nAlignment", type: "domain", size: 18 },
-            { id: "edge-ai", name: "Edge AI\nDeployment", type: "domain", size: 18 },
-            { id: "systems", name: "Systems\nArchitecture", type: "domain", size: 17 },
-            
-            // Technologies
-            { id: "python", name: "Python", type: "tech", size: 20 },
-            { id: "pytorch", name: "PyTorch", type: "tech", size: 18 },
-            { id: "bert", name: "BERT", type: "tech", size: 16 },
-            { id: "gpt", name: "GPT", type: "tech", size: 16 },
-            { id: "docker", name: "Docker", type: "tech", size: 15 },
-            { id: "typescript", name: "TypeScript", type: "tech", size: 15 },
-            { id: "react", name: "React\nNative", type: "tech", size: 14 },
-            { id: "golang", name: "Go", type: "tech", size: 14 },
-            { id: "c", name: "C", type: "tech", size: 13 },
-            { id: "rag", name: "RAG", type: "tech", size: 15 },
-            
-            // Active Projects
-            { id: "society-network", name: "Society as\nNeural Network", type: "project", size: 20 },
-            { id: "llm-embedded", name: "LLM on\nEdge Hardware", type: "project", size: 19 },
-            { id: "rlhf-lab", name: "RLHF\nLaboratory", type: "project", size: 18 },
-            { id: "time-series", name: "Time Series\nAnalysis Lab", type: "project", size: 17 },
-            { id: "healthcare-qa", name: "Healthcare\nQA System", type: "project", size: 16 },
-            
-            // Key Skills
-            { id: "research", name: "Research &\nPublication", type: "skill", size: 17 },
-            { id: "observability", name: "System\nObservability", type: "skill", size: 15 },
-            { id: "multilingual", name: "Trilingual\nCommunication", type: "skill", size: 14 },
-            { id: "cross-cultural", name: "Cross-Cultural\nInnovation", type: "skill", size: 14 },
-            { id: "mentoring", name: "Technical\nMentoring", type: "skill", size: 13 },
-            { id: "compliance", name: "Regulatory\nCompliance", type: "skill", size: 13 }
-        ];
-
-        const links = [
-            // Core Identity Connections (Strong)
-            { source: "navid", target: "healthcare", strength: "strong" },
-            { source: "navid", target: "ethics", strength: "strong" },
-            { source: "navid", target: "nlp", strength: "strong" },
-            { source: "navid", target: "research", strength: "strong" },
-            
-            // Domain to Technology Connections
-            { source: "healthcare", target: "bert", strength: "strong" },
-            { source: "healthcare", target: "gpt", strength: "strong" },
-            { source: "healthcare", target: "python", strength: "normal" },
-            { source: "healthcare", target: "compliance", strength: "strong" },
-            
-            { source: "nlp", target: "bert", strength: "strong" },
-            { source: "nlp", target: "gpt", strength: "strong" },
-            { source: "nlp", target: "rag", strength: "strong" },
-            { source: "nlp", target: "pytorch", strength: "normal" },
-            
-            { source: "edge-ai", target: "pytorch", strength: "normal" },
-            { source: "edge-ai", target: "c", strength: "normal" },
-            { source: "edge-ai", target: "python", strength: "normal" },
-            
-            { source: "systems", target: "docker", strength: "strong" },
-            { source: "systems", target: "observability", strength: "strong" },
-            { source: "systems", target: "python", strength: "normal" },
-            { source: "systems", target: "golang", strength: "normal" },
-            
-            // Project Connections
-            { source: "society-network", target: "ethics", strength: "strong" },
-            { source: "society-network", target: "python", strength: "normal" },
-            { source: "society-network", target: "research", strength: "strong" },
-            
-            { source: "llm-embedded", target: "edge-ai", strength: "strong" },
-            { source: "llm-embedded", target: "pytorch", strength: "strong" },
-            { source: "llm-embedded", target: "c", strength: "normal" },
-            
-            { source: "rlhf-lab", target: "ethics", strength: "strong" },
-            { source: "rlhf-lab", target: "pytorch", strength: "normal" },
-            { source: "rlhf-lab", target: "python", strength: "normal" },
-            
-            { source: "time-series", target: "python", strength: "strong" },
-            { source: "time-series", target: "pytorch", strength: "normal" },
-            
-            { source: "healthcare-qa", target: "healthcare", strength: "strong" },
-            { source: "healthcare-qa", target: "nlp", strength: "strong" },
-            { source: "healthcare-qa", target: "rag", strength: "strong" },
-            
-            // Skill Interconnections
-            { source: "research", target: "multilingual", strength: "normal" },
-            { source: "observability", target: "systems", strength: "strong" },
-            { source: "cross-cultural", target: "multilingual", strength: "strong" },
-            { source: "cross-cultural", target: "ethics", strength: "normal" },
-            { source: "compliance", target: "healthcare", strength: "strong" },
-            
-            // Technology Interconnections
-            { source: "python", target: "pytorch", strength: "strong" },
-            { source: "typescript", target: "react", strength: "strong" },
-            { source: "bert", target: "gpt", strength: "normal" },
-            { source: "bert", target: "rag", strength: "normal" },
-            { source: "gpt", target: "rag", strength: "strong" },
-            
-            // Cross-domain Connections
-            { source: "healthcare", target: "ethics", strength: "strong" },
-            { source: "edge-ai", target: "systems", strength: "normal" },
-            { source: "nlp", target: "ethics", strength: "normal" }
-        ];
-
-        // Set up the visualization
-        const container = document.getElementById('knowledge-graph');
-        const width = container.clientWidth || 1000;
-        const height = container.clientHeight || 600;
-        
-        const svg = d3.select("#knowledge-graph")
-            .append("svg")
-            .attr("width", width)
-            .attr("height", height);
-
-        // Initialize node positions randomly but within bounds
-        nodes.forEach(d => {
-            d.x = Math.random() * (width - 200) + 100;
-            d.y = Math.random() * (height - 200) + 100;
-        });
-
-        // Create simulation with better force balance
-        const simulation = d3.forceSimulation(nodes)
-            .force("link", d3.forceLink(links).id(d => d.id)
-                .distance(100)
-                .strength(0.7))
-            .force("charge", d3.forceManyBody()
-                .strength(-300)
-                .distanceMax(200))
-            .force("center", d3.forceCenter(width / 2, height / 2)
-                .strength(0.05))
-            .force("collision", d3.forceCollide()
-                .radius(d => d.size + 15)
-                .strength(0.8))
-            .force("bounds", () => {
-                nodes.forEach(d => {
-                    d.x = Math.max(d.size + 10, Math.min(width - d.size - 10, d.x));
-                    d.y = Math.max(d.size + 10, Math.min(height - d.size - 10, d.y));
-                });
-            });
-
-        // Create links
-        const link = svg.append("g")
-            .selectAll("line")
-            .data(links)
-            .enter().append("line")
-            .attr("class", d => d.strength === "strong" ? "link link-strong" : "link");
-
-        // Create nodes
-        const node = svg.append("g")
-            .selectAll("circle")
-            .data(nodes)
-            .enter().append("circle")
-            .attr("r", d => d.size)
-            .attr("class", d => `node-${d.type}`)
-            .style("cursor", "grab")
-            .call(d3.drag()
-                .on("start", dragstarted)
-                .on("drag", dragged)
-                .on("end", dragended));
-
-        // Add labels
-        const labels = svg.append("g")
-            .selectAll("text")
-            .data(nodes)
-            .enter().append("text")
-            .attr("class", "node-text")
-            .style("font-size", d => `${Math.max(10, d.size/2.5)}px`)
-            .selectAll("tspan")
-            .data(d => d.name.split('\n'))
-            .enter().append("tspan")
-            .attr("x", 0)
-            .attr("dy", (d, i) => i === 0 ? "0.35em" : "1.2em")
-            .text(d => d);
-
-        // Add enhanced hover effects
-        node.on("mouseover", function(event, d) {
-            d3.select(this)
-                .transition()
-                .duration(200)
-                .attr("r", d.size * 1.4)
-                .style("filter", "drop-shadow(5px 5px 10px rgba(0,0,0,0.4))");
-                
-            // Highlight connected nodes
-            const connectedNodes = new Set();
-            links.forEach(link => {
-                if (link.source.id === d.id) connectedNodes.add(link.target.id);
-                if (link.target.id === d.id) connectedNodes.add(link.source.id);
-            });
-            
-            node.style("opacity", n => connectedNodes.has(n.id) || n.id === d.id ? 1 : 0.3);
-            link.style("opacity", l => l.source.id === d.id || l.target.id === d.id ? 1 : 0.1);
-            
-        }).on("mouseout", function(event, d) {
-            d3.select(this)
-                .transition()
-                .duration(200)
-                .attr("r", d.size)
-                .style("filter", d => `drop-shadow(${d.type === 'core' ? '3px 3px 6px' : '2px 2px 4px'} rgba(0,0,0,0.3))`);
-                
-            // Reset opacity
-            node.style("opacity", 1);
-            link.style("opacity", l => l.strength === "strong" ? 0.8 : 0.6);
-        });
-
-        // Update positions on simulation tick with proper bounds checking
-        simulation.on("tick", () => {
-            // Constrain nodes to stay within bounds
-            nodes.forEach(d => {
-                d.x = Math.max(d.size + 20, Math.min(width - d.size - 20, d.x));
-                d.y = Math.max(d.size + 20, Math.min(height - d.size - 20, d.y));
-            });
-
-            link
-                .attr("x1", d => d.source.x)
-                .attr("y1", d => d.source.y)
-                .attr("x2", d => d.target.x)
-                .attr("y2", d => d.target.y);
-
-            node
-                .attr("cx", d => d.x)
-                .attr("cy", d => d.y);
-                
-            labels
-                .attr("transform", d => `translate(${d.x}, ${d.y})`);
-        });
-
-        // Restart simulation with alpha decay
-        simulation.alpha(1).alphaDecay(0.02).restart();
-
-        // Add a warm-up period for better initial positioning
-        setTimeout(() => {
-            simulation.alpha(0.3).restart();
-        }, 1000);
-
-        // Drag functions
-        function dragstarted(event, d) {
-            if (!event.active) simulation.alphaTarget(0.3).restart();
-            d.fx = d.x;
-            d.fy = d.y;
-            d3.select(this).style("cursor", "grabbing");
-        }
-
-        function dragged(event, d) {
-            d.fx = event.x;
-            d.fy = event.y;
-        }
-
-        function dragended(event, d) {
-            if (!event.active) simulation.alphaTarget(0);
-            d.fx = null;
-            d.fy = null;
-            d3.select(this).style("cursor", "grab");
-        }
-
-        // Responsive resize with proper repositioning
-        window.addEventListener('resize', () => {
-            const newWidth = container.clientWidth || 1000;
-            const newHeight = container.clientHeight || 600;
-            
-            svg.attr("width", newWidth).attr("height", newHeight);
-            
-            // Update simulation forces
-            simulation
-                .force("center", d3.forceCenter(newWidth / 2, newHeight / 2))
-                .force("bounds", () => {
-                    nodes.forEach(d => {
-                        d.x = Math.max(d.size + 10, Math.min(newWidth - d.size - 10, d.x));
-                        d.y = Math.max(d.size + 10, Math.min(newHeight - d.size - 10, d.y));
+        // Smooth scrolling for navigation links
+        document.querySelectorAll('a[href^="#"]').forEach(anchor => {
+            anchor.addEventListener('click', function (e) {
+                e.preventDefault();
+                const target = document.querySelector(this.getAttribute('href'));
+                if (target) {
+                    target.scrollIntoView({
+                        behavior: 'smooth',
+                        block: 'start'
                     });
-                });
-            
-            simulation.alpha(0.3).restart();
+                }
+            });
         });
 
-        // Add a reset button for debugging
-        const resetButton = d3.select("#knowledge-graph")
-            .append("button")
-            .style("position", "absolute")
-            .style("bottom", "150px")
-            .style("left", "20px")
-            .style("padding", "10px 15px")
-            .style("background", "rgba(255,255,255,0.9)")
-            .style("border", "none")
-            .style("border-radius", "5px")
-            .style("cursor", "pointer")
-            .text("🔄 Reset Layout")
-            .on("click", () => {
-                // Randomize positions and restart
-                nodes.forEach(d => {
-                    d.x = Math.random() * (width - 200) + 100;
-                    d.y = Math.random() * (height - 200) + 100;
-                    d.fx = null;
-                    d.fy = null;
-                });
-                simulation.alpha(1).restart();
-            });
+        // Navbar scroll effect
+        window.addEventListener('scroll', () => {
+            const navbar = document.getElementById('navbar');
+            if (window.scrollY > 100) {
+                navbar.classList.add('scrolled');
+            } else {
+                navbar.classList.remove('scrolled');
+            }
+        });
 
-        // Add pulsing animation for core node
-        function pulse() {
-            node.filter(d => d.type === "core")
-                .transition()
-                .duration(2000)
-                .attr("r", d => d.size * 1.1)
-                .transition()
-                .duration(2000)
-                .attr("r", d => d.size)
-                .on("end", pulse);
+        // Scroll progress indicator
+        window.addEventListener('scroll', () => {
+            const scrollProgress = document.getElementById('scroll-progress');
+            const scrollHeight = document.documentElement.scrollHeight - window.innerHeight;
+            const scrolled = (window.scrollY / scrollHeight) * 100;
+            scrollProgress.style.width = scrolled + '%';
+        });
+
+        // Fade in animation on scroll
+        const observerOptions = {
+            threshold: 0.1,
+            rootMargin: '0px 0px -50px 0px'
+        };
+
+        const observer = new IntersectionObserver((entries) => {
+            entries.forEach(entry => {
+                if (entry.isIntersecting) {
+                    entry.target.classList.add('visible');
+                }
+            });
+        }, observerOptions);
+
+        // Observe all fade-in elements
+        document.querySelectorAll('.fade-in').forEach(el => {
+            observer.observe(el);
+        });
+
+        // Typing effect for hero subtitle
+        function typeWriter(element, text, speed = 100) {
+            let i = 0;
+            element.innerHTML = '';
+            function type() {
+                if (i < text.length) {
+                    element.innerHTML += text.charAt(i);
+                    i++;
+                    setTimeout(type, speed);
+                }
+            }
+            type();
         }
-        
-        // Start pulsing after initial layout
-        setTimeout(pulse, 3000);
-        
+
+        // Initialize typing effect when page loads
+        window.addEventListener('load', () => {
+            const subtitle = document.querySelector('.hero-subtitle');
+            const originalText = subtitle.textContent;
+            typeWriter(subtitle, originalText, 50);
+        });
+
+        // Add hover effects to skill tags
+        document.querySelectorAll('.skill-tag').forEach(tag => {
+            tag.addEventListener('mouseenter', function() {
+                this.style.transform = 'translateY(-2px) scale(1.05)';
+            });
+            
+            tag.addEventListener('mouseleave', function() {
+                this.style.transform = 'translateY(0) scale(1)';
+            });
+        });
+
+        // Add floating animation to project cards
+        document.querySelectorAll('.project-card').forEach((card, index) => {
+            card.style.animationDelay = `${index * 0.1}s`;
+            card.addEventListener('mouseenter', function() {
+                this.style.transform = 'translateY(-15px) rotateY(5deg)';
+            });
+            
+            card.addEventListener('mouseleave', function() {
+                this.style.transform = 'translateY(-10px) rotateY(0deg)';
+            });
+        });
+
+        // Parallax effect for hero section
+        window.addEventListener('scroll', () => {
+            const scrolled = window.pageYOffset;
+            const hero = document.querySelector('.hero');
+            const rate = scrolled * -0.5;
+            
+            if (hero) {
+                hero.style.transform = `translate3d(0, ${rate}px, 0)`;
+            }
+        });
+
+        // Add dynamic background patterns
+        function createFloatingElements() {
+            const hero = document.querySelector('.hero');
+            for (let i = 0; i < 20; i++) {
+                const element = document.createElement('div');
+                element.className = 'floating-element';
+                element.style.cssText = `
+                    position: absolute;
+                    width: ${Math.random() * 10 + 5}px;
+                    height: ${Math.random() * 10 + 5}px;
+                    background: rgba(255, 255, 255, 0.1);
+                    border-radius: 50%;
+                    left: ${Math.random() * 100}%;
+                    top: ${Math.random() * 100}%;
+                    animation: float ${Math.random() * 10 + 10}s linear infinite;
+                `;
+                hero.appendChild(element);
+            }
+        }
+
+        // Add CSS for floating animation
+        const style = document.createElement('style');
+        style.textContent = `
+            @keyframes float {
+                0% { transform: translateY(100vh) rotate(0deg); opacity: 0; }
+                10% { opacity: 1; }
+                90% { opacity: 1; }
+                100% { transform: translateY(-100vh) rotate(360deg); opacity: 0; }
+            }
+            .floating-element {
+                pointer-events: none;
+                z-index: 1;
+            }
+        `;
+        document.head.appendChild(style);
+
+        // Initialize floating elements
+        createFloatingElements();
+
+        // Add contact form functionality (if needed)
+        const contactForm = document.getElementById('contact-form');
+        if (contactForm) {
+            contactForm.addEventListener('submit', function(e) {
+                e.preventDefault();
+                // Add form submission logic here
+                alert('Thank you for your message! I\'ll get back to you soon.');
+            });
+        }
     </script>
 </body>
-</html>
+</html>-in">
+                <h2 class="section-title">About Me</h2>
+                <p class="section-subtitle">Philosopher-Engineer bridging theory and practice in AI consciousness research</p>
+            </div>
+            <div class="about-grid">
+                <div class="about-content fade-in">
+                    <p>I'm a <span class="highlight">Software Engineer</span> and <span class="highlight">AI Researcher</span> with a unique passion for exploring the intersection of philosophy and technology. Currently pursuing my M.Sc. in Computer Science at TU Munich, I specialize in healthcare AI systems that prioritize both innovation and ethical responsibility.</p>
+                    
+                    <p>My research focuses on <span class="highlight">consciousness, AI, and reality</span> from a formal perspective, investigating how minds transcend representational limits through recursive self-modification. I bring this philosophical depth to practical applications in regulated industries, particularly healthcare technology.</p>
+                    
+                    <p>With experience spanning from low-level systems programming in C to cutting-edge AI/ML implementations, I bridge the gap between theoretical research and production-ready solutions. I'm fluent in Persian, English, and German, allowing me to work effectively across diverse cultural and technical contexts.</p>
+                </div>
+                <div class="stats-grid fade-in">
+                    <div class="stat-card">
+                        <div class="stat-number">5+</div>
+                        <div class="stat-label">Years Experience</div>
+                    </div>
+                    <div class="stat-card">
+                        <div class="stat-number">3</div>
+                        <div class="stat-label">Languages Spoken</div>
+                    </div>
+                    <div class="stat-card">
+                        <div class="stat-number">10+</div>
+                        <div class="stat-label">Technologies Mastered</div>
+                    </div>
+                    <div class="stat-card">
+                        <div class="stat-number">1</div>
+                        <div class="stat-label">Research Paper</div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Experience Section -->
+    <section id="experience" class="section">
+        <div class="container">
+            <div class="section-header fade-in">
+                <h2 class="section-title">Work Experience</h2>
+                <p class="section-subtitle">My professional journey in software engineering and AI research</p>
+            </div>
+            <div class="experience-timeline">
+                <div class="timeline-item fade-in">
+                    <div class="timeline-content">
+                        <div class="job-title">Working Student - Software Developer</div>
+                        <div class="company">NODE-H MUNICH</div>
+                        <div class="duration">Oct 2023 - Oct 2024</div>
+                        <div class="job-description">
+                            Built and maintained microservices using Python and Docker in a distributed backend. Improved system observability with structured logging and monitoring tools.
+                        </div>
+                    </div>
+                    <div class="timeline-dot"></div>
+                </div>
+
+                <div class="timeline-item fade-in">
+                    <div class="timeline-content">
+                        <div class="job-title">Working Student - Software Developer</div>
+                        <div class="company">MDOP MUNICH</div>
+                        <div class="duration">Feb 2022 - Mar 2023</div>
+                        <div class="job-description">
+                            Built scalable data processing and visualization pipelines. Architected device management systems using React Native and Node.js.
+                        </div>
+                    </div>
+                    <div class="timeline-dot"></div>
+                </div>
+
+                <div class="timeline-item fade-in">
+                    <div class="timeline-content">
+                        <div class="job-title">Research Assistant</div>
+                        <div class="company">TUM MUNICH</div>
+                        <div class="duration">Jan 2019 - Jan 2020</div>
+                        <div class="job-description">
+                            Created automation tools in Python for structured data ingestion from web-based health APIs, contributing to research in healthcare technology.
+                        </div>
+                    </div>
+                    <div class="timeline-dot"></div>
+                </div>
+
+                <div class="timeline-item fade-in">
+                    <div class="timeline-content">
+                        <div class="job-title">Fullstack Developer</div>
+                        <div class="company">QUIZ OF KINGS CO.</div>
+                        <div class="duration">Jan 2016 - Feb 2018</div>
+                        <div class="job-description">
+                            Developed and deployed Python/Docker microservices in a production backend. Led backend refactoring efforts and improved logging/monitoring across services.
+                        </div>
+                    </div>
+                    <div class="timeline-dot"></div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Skills Section -->
+    <section id="skills" class="section skills">
+        <div class="container">
+            <div class="section-header fade
