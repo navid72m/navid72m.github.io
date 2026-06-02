@@ -3,13 +3,13 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Can a Universe Explain Its Own Existence? A Fixed-Point Proposal — Navid Mirnouri</title>
+    <title>Can a Universe Explain Its Own Existence? A Fixed‑Point Proposal — Navid Mirnouri</title>
     <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
 
-    <meta name="description" content="A research note on formalizing the intuition of a self-producing world using fixed-point theory. By Navid Mirnouri.">
+    <meta name="description" content="A research note on formalizing the intuition of a self‑producing world using fixed‑point theory. By Navid Mirnouri.">
     <meta name="author" content="Navid Mirnouri">
-    <meta property="og:title" content="Can a Universe Explain Its Own Existence? A Fixed-Point Proposal">
-    <meta property="og:description" content="A research note on formalizing self-consistent worlds.">
+    <meta property="og:title" content="Can a Universe Explain Its Own Existence? A Fixed‑Point Proposal">
+    <meta property="og:description" content="A research note on formalizing self‑consistent worlds.">
     <meta property="og:type" content="article">
     <meta property="og:url" content="https://navid72m.github.io/blog/fixed-point-universe.html">
     <link rel="canonical" href="https://navid72m.github.io/blog/fixed-point-universe.html">
@@ -383,9 +383,9 @@
 
     <header class="post-hero">
         <div class="post-hero-inner">
-            <span class="post-category">Philosophy of Mind &amp; AI</span>
-            <h1>Can a Universe Explain Its Own Existence?<br>A Fixed-Point Proposal</h1>
-            <p class="post-tagline">A research note on formalizing self-consistent worlds.</p>
+            <span class="post-category">Mathematical Metaphysics</span>
+            <h1>Can a Universe Explain Its Own Existence?<br>A Fixed‑Point Proposal</h1>
+            <p class="post-tagline">A research note on formalizing self‑consistent worlds.</p>
             <div class="post-meta">
                 <span><i class="far fa-calendar-alt"></i> June 2, 2026</span>
                 <span><i class="far fa-clock"></i> 12 min read</span>
@@ -398,7 +398,7 @@
 
         <div class="abstract">
             <div class="abstract-label">Abstract</div>
-            <p>Why does anything exist? Every causal answer invites a further "why," leaving three options: an infinite regress, an unexplained brute fact, or a loop that closes on itself. This note develops the third. I formalize the intuition of a <strong>self-producing world</strong> — a structure that generates itself with no external input — as a <strong>fixed point</strong> of a generating operator <code>f</code> on a space of possible worlds, where a self-producing world is precisely a <code>w</code> satisfying <code>f(w) = w</code>. I argue that the right operator acts on whole worlds rather than stepping time forward, and that this places the problem in the self-reference tradition of Tarski and Kleene as much as in the metric setting of Banach's contraction theorem. The payoff and its limit are stated plainly: fixed-point uniqueness, if it could be established, would dissolve the <em>selection</em> problem (why this world among the consistent ones), but no fixed-point result can cross the gap from "mathematically consistent" to "actually instantiated" — the brute fact relocates rather than disappears. I close with a narrow, attackable research question: <strong>which generating operators possess a unique non-trivial fixed point, and could physical law plausibly belong to that class?</strong></p>
+            <p>Why does anything exist? Every causal answer invites a further "why," leaving three options: an infinite regress, an unexplained brute fact, or a loop that closes on itself. This note develops the third. I formalize the intuition of a <strong>self‑representing world</strong> — a structure that knows itself completely — as a <strong>fixed point</strong> of an operator <code>A</code> on the space of all formal theories, where a self‑representing world is precisely a theory <code>T</code> satisfying <code>A(T) = T</code>. The operator <code>A</code> extracts the sentences a theory claims to be true of itself, and the space is equipped with the Cantor metric <code>d(T₁, T₂) = Σ 2⁻ⁱ |1_{pᵢ∈T₁} − 1_{pᵢ∈T₂}|</code>. I argue that the right operator can be seen as a logical self‑consequence map, and that this places the problem in the metric semantics of logic programs (Fitting, Apt & Pedreschi) as much as in the fixed‑point tradition of Banach. The payoff and its limit are stated plainly: if <code>A</code> can be shown to be a contraction on a complete space of worlds, Banach's theorem guarantees a <strong>unique</strong> self‑representing world, dissolving the <em>selection</em> problem (why this world among the consistent ones). However, no fixed‑point result can cross the gap from "mathematically consistent" to "actually instantiated" — the brute fact relocates rather than disappears. I close with a narrow, attackable research question: <strong>which self‑representation operators possess a unique non‑trivial fixed point under the Cantor metric, and could the actual universe's logical structure belong to that class?</strong></p>
         </div>
 
         <h2>The question</h2>
@@ -407,11 +407,11 @@
 
         <p>This note is about taking the third option seriously and trying to make it precise.</p>
 
-        <p>The intuition: imagine reality as a structure that produces itself. Not a chain with a first link, but a loop — where the "beginning" is entailed by what it gives rise to, and the whole thing hangs together with no input from outside. If such a structure is coherent, it would need nothing external. It would be <em>self-producing</em>.</p>
+        <p>The intuition: imagine reality as a formal theory that can talk about itself — one that, when asked "what is true?", gives exactly the answers that describe its own content. Not a chain with a first link, but a loop — where the theory's own internal account of itself matches the theory exactly. If such a structure is coherent, it would need nothing external. It would be <em>self‑representing</em>.</p>
 
         <div class="callout">
             <div class="callout-title">Central question</div>
-            <p>Can the idea of a self-producing world be stated rigorously enough to <strong>study</strong>, rather than just gestured at?</p>
+            <p>Can the idea of a self‑representing world be stated rigorously enough to <strong>study</strong>, rather than just gestured at?</p>
         </div>
 
         <h2>Why this isn't new, and where the gap is</h2>
@@ -424,75 +424,79 @@
             <li><strong>David Lewis's modal realism</strong> — all possible worlds are equally real.</li>
         </ul>
 
-        <p>What these share is a <em>selection</em> problem: if many self-consistent realities are possible, what distinguishes the actual one? The proposal here doesn't claim to solve that. It claims something narrower and, I think, more tractable: that the "self-producing loop" intuition can be expressed as a <strong>fixed-point condition</strong>, and that doing so turns a vague metaphor into a question with mathematical structure.</p>
+        <p>What these share is a <em>selection</em> problem: if many self‑consistent realities are possible, what distinguishes the actual one? The proposal here doesn't claim to solve that outright. It claims something narrower and, I think, more tractable: that the "self‑representing loop" intuition can be expressed as a <strong>fixed‑point condition</strong> in a metric space, and that doing so turns a vague metaphor into a question with a well‑studied mathematical structure — the metric semantics of logic programs.</p>
 
         <h2>The formalization</h2>
 
-        <p>A <em>fixed point</em> of a function <code>f</code> is a value that maps to itself:</p>
+        <p>We work with a countable language whose sentences are enumerated <code>p₁, p₂, …</code>. A <strong>possible world</strong> is a formal theory <code>T</code> — simply a set of sentences. The space <strong>X</strong> of all possible worlds is thus the Cantor space <code>{0,1}^ℕ</code>, where a world corresponds to its characteristic sequence <code>(1_{pᵢ∈T})</code>.</p>
 
-        <div class="formula-block">f(x) = x</div>
+        <p>The <strong>distance</strong> between two worlds is the standard Cantor metric:</p>
 
-        <p>You put <code>x</code> in, you get the same <code>x</code> back. This is exactly the shape of a self-producing structure — something defined through itself. So the proposal is:</p>
+        <div class="formula-block">d(T₁, T₂) = Σ_{i=1}^∞ 2⁻ⁱ · | 1_{pᵢ∈T₁} − 1_{pᵢ∈T₂} |</div>
 
-        <blockquote>
-            Let <strong>X</strong> be a space of possible worlds. Let <strong>f: X → X</strong> be a <em>generating operator</em> — given a candidate world, <code>f</code> returns the world that candidate's own laws and contents entail. Then a <strong>self-producing world is a fixed point of f</strong>: a world <code>w</code> with <code>f(w) = w</code>, one that generates exactly itself.
-        </blockquote>
+        <p>This metric makes <strong>X</strong> a complete, compact metric space. Convergence means: <code>Tₙ → T</code> iff for every sentence <code>pᵢ</code>, eventually <code>pᵢ ∈ Tₙ ⇔ pᵢ ∈ T</code>. Completeness holds for the whole space, even if we later restrict to a closed subspace of "well‑behaved" theories.</p>
+
+        <p>Now define the <strong>self‑representation operator</strong> <code>A: X → X</code>. For any theory <code>T</code>, let <code>A(T)</code> be the set of sentences that <code>T</code> itself says are true — its internal representation of itself. Formally, if the language contains a truth predicate <code>Tr</code> and enough syntax,</p>
+
+        <div class="formula-block">A(T) = { φ | T ⊢ Tr(⌜φ⌝) }</div>
+
+        <p>where <code>⊢</code> is classical provability from the axioms of <code>T</code> (plus some fixed base theory of syntax). A <strong>self‑representing world</strong> is a fixed point of <code>A</code>: a theory <code>T</code> with <code>A(T) = T</code>. Such a world completely "knows" what it is — its internal truth predicate coincides with its own set of theorems.</p>
 
         <p>Two things are worth making explicit, because they're easy to get wrong.</p>
 
-        <p><strong><code>f</code> is a generator, not a test.</strong> It's tempting to define <code>f</code> as "ask whether a world is self-producing" — a yes/no predicate. But a predicate outputs a truth value, not a world, so <code>f(x) = x</code> becomes meaningless. For the fixed-point framing to work, <code>f</code> must take a world and <em>return a world</em>: "the world this one produces." Being self-producing is then not something <code>f</code> checks — it is the property of being a fixed point of <code>f</code>.</p>
+        <p><strong><code>A</code> is a generator, not a test.</strong> It does not ask "is this world self‑consistent?" and output a yes/no. It takes a world and <em>returns the world that this world claims to be</em>. Being self‑representing is the property of being a fixed point of <code>A</code>.</p>
 
-        <p><strong><code>f</code> is not simply "the laws of physics stepping time forward."</strong> If <code>f</code> advances a world by one moment, its fixed points are <em>static</em> states that never change — frozen universes — which isn't the idea. The loop is about a whole history/structure generating itself, so <code>f</code> has to operate on <em>entire worlds</em> as single objects, not on momentary snapshots. This pushes the natural home of the problem toward the logic-and-computation tradition of self-reference (Tarski and Kleene fixed points) rather than only the analysis of dynamical systems.</p>
+        <p><strong><code>A</code> is not "the laws of physics stepping time forward."</strong> If <code>A</code> advanced a world by one moment, fixed points would be static frozen states. Here <code>A</code> operates on entire worlds as single objects — the internal description of the whole history. This pushes the natural home of the problem toward the logic‑of‑self‑reference tradition (Kripke, Gupta & Belnap, Fitting) rather than dynamical systems.</p>
 
-        <h2>What fixed-point theory could buy — and what it can't</h2>
+        <h2>What fixed‑point theory could buy — and what it can't</h2>
 
-        <p>The reason to reach for this machinery is that mathematics already has theorems guaranteeing fixed points exist under stated conditions. The relevant ones:</p>
+        <p>The reason to reach for this machinery is that mathematics already has theorems guaranteeing fixed points exist under stated conditions. The most relevant one here is:</p>
 
         <ul>
-            <li><strong>Banach (contraction mapping):</strong> if <code>f</code> "shrinks distances" between worlds on a complete metric space, it has <strong>exactly one</strong> fixed point. This is the dream target — <em>uniqueness</em> would mean there is only one self-producing world, so the selection problem dissolves.</li>
-            <li><strong>Brouwer:</strong> a continuous map on a suitable space has <em>at least one</em> fixed point — existence, but possibly many (the many-worlds branch).</li>
-            <li><strong>Tarski:</strong> an order-preserving map on a lattice has a structured set of fixed points. This is the tool if "consistency" is formalized <em>logically</em> rather than via a distance, and it is the mathematics behind recursive self-reference.</li>
+            <li><strong>Banach (contraction mapping):</strong> if <code>A</code> "shrinks distances" between worlds on a complete metric space — i.e., there exists <code>0 ≤ k < 1</code> such that <code>d(A(T₁), A(T₂)) ≤ k·d(T₁, T₂)</code> — then <code>A</code> has <strong>exactly one</strong> fixed point. This is the dream target — <em>uniqueness</em> would mean there is only one self‑representing world, so the selection problem dissolves.</li>
         </ul>
 
         <p>To actually invoke Banach, several things must be established in order:</p>
 
         <ol class="steps">
-            <li>Define <strong>X</strong>, the space of possible worlds.</li>
-            <li>Define a <strong>metric</strong> on X — a genuine notion of distance between two worlds, satisfying the metric axioms.</li>
-            <li>Prove the space is <strong>complete</strong>.</li>
-            <li>Define the generating operator <strong>f: X → X</strong>.</li>
-            <li>Prove <code>f</code> is a <strong>contraction</strong>.</li>
+            <li>Define <strong>X</strong>, the space of possible worlds (Cantor space).</li>
+            <li>Define the <strong>metric</strong> <code>d</code> as above — a genuine distance satisfying the metric axioms.</li>
+            <li>Prove the space is <strong>complete</strong> (done — the whole Cantor space is complete).</li>
+            <li>Define the self‑representation operator <strong>A: X → X</strong>.</li>
+            <li>Prove <code>A</code> is a <strong>contraction</strong> — the crucial step.</li>
         </ol>
 
-        <p>Steps 1–3 set the stage; completeness alone proves nothing about how many fixed points exist. <strong>Step 5 is where the real content lives</strong> — and where the idea is most likely to fail. There is no a priori reason a generating operator on worlds should shrink differences; generic dynamics <em>expand</em> them (that is what chaos is). So the honest expectation is that <code>f</code> is usually <em>not</em> a contraction, which means uniqueness does <em>not</em> come for free, and multiple self-producing worlds are the default.</p>
+        <p>Steps 1–4 are straightforward. <strong>Step 5 is where the real content lives</strong> — and where the idea is most likely to fail. The naive <code>A</code> defined as "whatever <code>T</code> proves about itself" is <em>not</em> a contraction on the full Cantor space, because self‑referential sentences (the Liar, the truth‑teller) can create arbitrarily wild feedback. To obtain a contraction, one must impose syntactic restrictions that break self‑loops. The best‑known family of such restrictions comes from the metric semantics of logic programs: if the truth‑predicate applications are <strong>strictly level‑decreasing</strong> (i.e., the truth of a sentence depends only on sentences of strictly lower level), then <code>A</code> becomes a contraction. In that case, the unique fixed point is exactly the <strong>perfect model</strong> of a self‑referential logic program — a non‑trivial, consistent world that is its own internal representation.</p>
 
-        <p>That observation is itself the research direction.</p>
+        <p>Thus the mathematical question becomes: can we exhibit a self‑representation operator on the Cantor space that is both a contraction and yields a fixed point that is "rich enough" to look like a plausible universe? The literature on acceptable logic programs and Fitting's metric semantics suggests this is not a fantasy, but it is also not a settled result for full first‑order theories.</p>
 
         <h2>The honest ceiling</h2>
 
         <p>Even a complete success here has a hard limit, and it should be stated plainly.</p>
 
-        <p>A fixed point of <code>f</code> is a world that is <strong>mathematically self-consistent</strong>. It does not follow that the world is <strong>instantiated</strong> — that it is <em>actual</em> rather than merely a coherent possibility. The fixed point of the cosine function exists mathematically whether or not anything physical realizes it. So this program, at its very best, could show that a self-producing world is <em>coherent</em> and perhaps <em>unique among the consistent ones</em>. It cannot cross the gap from "consistent" to "actually exists."</p>
+        <p>A fixed point of <code>A</code> is a world that is <strong>mathematically self‑consistent</strong> in a very specific sense: its internal truth predicate matches its theorems. It does not follow that the world is <strong>instantiated</strong> — that it is <em>actual</em> rather than merely a coherent possibility. The fixed point of the cosine function exists mathematically whether or not anything physical realizes it. So this program, at its very best, could show that a self‑representing world is <em>coherent</em> and perhaps <em>unique among the consistent ones</em>. It cannot cross the gap from "consistent" to "actually exists."</p>
 
-        <p>That gap is the brute fact. It does not disappear; it relocates — from "why does the universe exist?" to "why does consistency confer existence?" Any framework that explains existence smuggles a brute fact in somewhere. The value of formalizing is not eliminating it but making <em>precisely visible</em> what is being explained (the structure and possibly the uniqueness of the loop) and what is not (its instantiation).</p>
+        <p>That gap is the brute fact. It does not disappear; it relocates — from "why does the universe exist?" to "why does self‑consistency of this particular kind confer existence?" Any framework that explains existence smuggles a brute fact in somewhere. The value of formalizing is not eliminating it but making <em>precisely visible</em> what is being explained (the structure and possibly the uniqueness of the loop) and what is not (its instantiation).</p>
 
         <h2>The proposal, stated narrowly</h2>
 
         <p>Stripped of grandiosity, here is the actual research question:</p>
 
         <blockquote>
-            <strong>What structural property must a generating operator <code>f</code> have for it to possess a unique, non-trivial fixed point — and does anything about physical law plausibly place our universe's "operator" in that class?</strong>
+            <strong>Which self‑representation operators on the Cantor space of sentences are contractions, what are their unique fixed points, and does anything about the logical structure of our universe place its "internal representation operator" in that class?</strong>
         </blockquote>
 
-        <p>This is narrow, attackable, and descends directly from the original question about how a self-causing structure could get off the ground. The first half is mathematics (characterize the operators with unique non-trivial fixed points). The second half is where it would connect — if at all — to physics.</p>
+        <p>This is narrow, attackable, and descends directly from the original question about how a self‑contained structure could be uniquely selected. The first half is mathematics (characterize the contraction operators for self‑referential truth). The second half is where it would connect — if at all — to the actual world.</p>
 
-        <p>I make no claim that this succeeds. I claim only that it converts a 2,500-year-old intuition into a question with enough structure to be worked on, and that it is honest about exactly where it stops.</p>
+        <p>I make no claim that this succeeds. I claim only that it converts a 2,500‑year‑old intuition into a question with enough structure to be worked on, and that it is honest about exactly where it stops.</p>
 
         <div class="reading-list">
             <h3>Reading list</h3>
             <ul>
-                <li><strong>Keith Conrad</strong> — <em>The Contraction Mapping Theorem</em> (free expository notes) — the cleanest on-ramp to Banach.</li>
-                <li><strong>Tarski's fixed-point theorem</strong> and <strong>Kleene's recursion theorem</strong> — the self-reference tradition in logic and computer science.</li>
+                <li><strong>Fitting, M.</strong> (1994) — <em>A Kripke‑Kleene semantics for logic programs</em>. J. Logic Programming. The direct mathematical analogue of this proposal; introduces the Cantor metric on interpretations and the contraction properties of immediate consequence operators.</li>
+                <li><strong>Apt, K.R. & Pedreschi, D.</strong> (1993) — <em>Reasoning about termination of pure Prolog programs</em>. Information and Computation. Contraction conditions for acceptable logic programs.</li>
+                <li><strong>Keith Conrad</strong> — <em>The Contraction Mapping Theorem</em> (free expository notes) — the cleanest on‑ramp to Banach.</li>
+                <li><strong>Gupta, A. & Belnap, N.</strong> (1993) — <em>The Revision Theory of Truth</em>. The dynamics of self‑referential truth without fixed points.</li>
                 <li><strong>Max Tegmark</strong> — <em>Our Mathematical Universe</em> — the strongest statement of "consistency = existence."</li>
                 <li><strong>Derek Parfit</strong> — "Why Anything? Why This?" — the selector problem, stated by the person who framed it best.</li>
                 <li><strong>David Lewis</strong> — <em>On the Plurality of Worlds</em> — modal realism.</li>
