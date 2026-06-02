@@ -193,6 +193,34 @@
             color: var(--text-primary);
         }
 
+        /* Abstract */
+        .abstract {
+            background: var(--bg-secondary);
+            border: 1px solid #e2e8f0;
+            border-radius: 14px;
+            padding: 1.75rem 2rem;
+            margin: 0 0 3rem;
+        }
+
+        .abstract .abstract-label {
+            font-size: 0.8rem;
+            font-weight: 700;
+            letter-spacing: 0.08em;
+            text-transform: uppercase;
+            color: var(--primary-color);
+            margin-bottom: 0.75rem;
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+        }
+
+        .abstract p {
+            font-size: 1.05rem;
+            color: var(--text-secondary);
+            margin-bottom: 0;
+            line-height: 1.8;
+        }
+
+        .abstract p strong { color: var(--text-primary); }
+
         /* Callout / blockquote */
         blockquote {
             border-left: 4px solid var(--accent-color);
@@ -367,6 +395,11 @@
     </header>
 
     <article class="post-body">
+
+        <div class="abstract">
+            <div class="abstract-label">Abstract</div>
+            <p>Why does anything exist? Every causal answer invites a further "why," leaving three options: an infinite regress, an unexplained brute fact, or a loop that closes on itself. This note develops the third. I formalize the intuition of a <strong>self-producing world</strong> — a structure that generates itself with no external input — as a <strong>fixed point</strong> of a generating operator <code>f</code> on a space of possible worlds, where a self-producing world is precisely a <code>w</code> satisfying <code>f(w) = w</code>. I argue that the right operator acts on whole worlds rather than stepping time forward, and that this places the problem in the self-reference tradition of Tarski and Kleene as much as in the metric setting of Banach's contraction theorem. The payoff and its limit are stated plainly: fixed-point uniqueness, if it could be established, would dissolve the <em>selection</em> problem (why this world among the consistent ones), but no fixed-point result can cross the gap from "mathematically consistent" to "actually instantiated" — the brute fact relocates rather than disappears. I close with a narrow, attackable research question: <strong>which generating operators possess a unique non-trivial fixed point, and could physical law plausibly belong to that class?</strong></p>
+        </div>
 
         <h2>The question</h2>
 
