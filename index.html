@@ -820,6 +820,132 @@
             transform: translateY(0);
         }
 
+        /* Blog Section */
+        .blog {
+            background: var(--bg-primary);
+        }
+
+        .blog-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(320px, 1fr));
+            gap: 2rem;
+        }
+
+        .blog-card {
+            background: white;
+            border-radius: 16px;
+            overflow: hidden;
+            box-shadow: var(--shadow-lg);
+            transition: all 0.3s ease;
+            display: flex;
+            flex-direction: column;
+            border: 1px solid #e2e8f0;
+        }
+
+        .blog-card:hover {
+            transform: translateY(-8px);
+            box-shadow: var(--shadow-xl);
+        }
+
+        .blog-card-header {
+            padding: 2rem 2rem 1rem;
+        }
+
+        .blog-meta {
+            display: flex;
+            align-items: center;
+            gap: 1rem;
+            margin-bottom: 1rem;
+            flex-wrap: wrap;
+        }
+
+        .blog-date {
+            font-size: 0.85rem;
+            color: var(--text-light);
+        }
+
+        .blog-tag {
+            background: var(--bg-secondary);
+            color: var(--primary-color);
+            padding: 0.2rem 0.75rem;
+            border-radius: 20px;
+            font-size: 0.8rem;
+            font-weight: 600;
+            border: 1px solid rgba(102, 126, 234, 0.3);
+        }
+
+        .blog-title {
+            font-size: 1.25rem;
+            font-weight: 700;
+            color: var(--text-primary);
+            margin-bottom: 0.75rem;
+            line-height: 1.4;
+        }
+
+        .blog-excerpt {
+            color: var(--text-secondary);
+            font-size: 0.95rem;
+            line-height: 1.7;
+            padding: 0 2rem;
+            flex: 1;
+        }
+
+        .blog-footer {
+            padding: 1.5rem 2rem;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            border-top: 1px solid #f0f4f8;
+            margin-top: 1.5rem;
+        }
+
+        .blog-read-time {
+            font-size: 0.85rem;
+            color: var(--text-light);
+        }
+
+        .blog-link {
+            text-decoration: none;
+            color: var(--primary-color);
+            font-weight: 600;
+            font-size: 0.9rem;
+            display: flex;
+            align-items: center;
+            gap: 0.4rem;
+            transition: gap 0.2s ease, color 0.2s ease;
+        }
+
+        .blog-link:hover {
+            color: var(--secondary-color);
+            gap: 0.7rem;
+        }
+
+        .blog-cta {
+            text-align: center;
+            margin-top: 3rem;
+        }
+
+        .btn-outline {
+            background: transparent;
+            color: var(--primary-color);
+            border: 2px solid var(--primary-color);
+            padding: 0.75rem 2rem;
+            border-radius: 50px;
+            font-weight: 600;
+            text-decoration: none;
+            display: inline-flex;
+            align-items: center;
+            gap: 0.5rem;
+            transition: all 0.3s ease;
+        }
+
+        .btn-outline:hover {
+            background: var(--primary-color);
+            color: white;
+            transform: translateY(-2px);
+            box-shadow: var(--shadow-lg);
+        }
+
         /* Scroll indicator */
         .scroll-indicator {
             position: fixed;
@@ -857,6 +983,7 @@
                 <li><a href="#skills">Skills</a></li>
                 <li><a href="#projects">Projects</a></li>
                 <li><a href="#research">Research</a></li>
+                <li><a href="#blog">Blog</a></li>
                 <li><a href="#contact">Contact</a></li>
             </ul>
         </div>
@@ -1182,6 +1309,68 @@
                         "Consciousness is not the static possession of knowledge, but the infinite, recursive pursuit of understanding—a trans-reality process that reveals both the inexhaustibility of reality and the creative power of intelligent minds."
                     </blockquote>
                 </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Blog Section -->
+    <section id="blog" class="section blog">
+        <div class="container">
+            <div class="section-header fade-in">
+                <h2 class="section-title">Blog</h2>
+                <p class="section-subtitle">Thoughts on AI, consciousness, healthcare technology, and the philosophy of mind</p>
+            </div>
+            <div class="blog-grid">
+                <div class="blog-card fade-in">
+                    <div class="blog-card-header">
+                        <div class="blog-meta">
+                            <span class="blog-date"><i class="far fa-calendar-alt"></i> June 2, 2026</span>
+                            <span class="blog-tag">Philosophy of Mind</span>
+                        </div>
+                        <h3 class="blog-title">Can a Universe Explain Its Own Existence? A Fixed-Point Proposal</h3>
+                    </div>
+                    <p class="blog-excerpt">A research note on formalizing the intuition of a self-producing world. If reality is a structure that generates itself, that's a fixed point of a generating operator — and mathematics already has theorems about when those exist and are unique.</p>
+                    <div class="blog-footer">
+                        <span class="blog-read-time"><i class="far fa-clock"></i> 12 min read</span>
+                        <a href="/blog/fixed-point-universe.html" class="blog-link">Read more <i class="fas fa-arrow-right"></i></a>
+                    </div>
+                </div>
+
+                <div class="blog-card fade-in">
+                    <div class="blog-card-header">
+                        <div class="blog-meta">
+                            <span class="blog-date"><i class="far fa-calendar-alt"></i> May 18, 2026</span>
+                            <span class="blog-tag">Healthcare AI</span>
+                        </div>
+                        <h3 class="blog-title">Why Regulatory Compliance Is Not the Enemy of Innovation in Medical AI</h3>
+                    </div>
+                    <p class="blog-excerpt">Working with healthcare AI systems taught me that compliance frameworks like MDR and HIPAA are not bureaucratic obstacles — they encode hard-won lessons about patient safety. Here's how to build innovation within constraints.</p>
+                    <div class="blog-footer">
+                        <span class="blog-read-time"><i class="far fa-clock"></i> 6 min read</span>
+                        <a href="#" class="blog-link">Read more <i class="fas fa-arrow-right"></i></a>
+                    </div>
+                </div>
+
+                <div class="blog-card fade-in">
+                    <div class="blog-card-header">
+                        <div class="blog-meta">
+                            <span class="blog-date"><i class="far fa-calendar-alt"></i> April 30, 2026</span>
+                            <span class="blog-tag">Machine Learning</span>
+                        </div>
+                        <h3 class="blog-title">Running LLMs on Edge Hardware: Lessons from the Jetson Orin Nano</h3>
+                    </div>
+                    <p class="blog-excerpt">Deploying large language models on a 15W embedded device is equal parts engineering challenge and philosophical experiment. What does it mean to compress intelligence? A practical walkthrough with quantization tradeoffs and real benchmarks.</p>
+                    <div class="blog-footer">
+                        <span class="blog-read-time"><i class="far fa-clock"></i> 10 min read</span>
+                        <a href="#" class="blog-link">Read more <i class="fas fa-arrow-right"></i></a>
+                    </div>
+                </div>
+            </div>
+            <div class="blog-cta fade-in">
+                <a href="https://medium.com/@navid72m" target="_blank" class="btn-outline">
+                    <i class="fab fa-medium"></i>
+                    More posts on Medium
+                </a>
             </div>
         </div>
     </section>
