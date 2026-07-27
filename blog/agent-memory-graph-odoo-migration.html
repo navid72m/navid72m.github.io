@@ -1,0 +1,527 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Giving Agents a Memory: A Knowledge Graph for an ERP Migration — Navid Mirnouri</title>
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
+
+    <meta name="description" content="Inside a two-hop Odoo 17→19 migration pipeline and the multi-agent debugging framework, SQLite knowledge graph, and CLI built to keep AI coding agents coherent across weeks of sessions. By Navid Mirnouri.">
+    <meta name="author" content="Navid Mirnouri">
+    <meta property="og:title" content="Giving Agents a Memory: A Knowledge Graph for an ERP Migration">
+    <meta property="og:description" content="A graph-structured memory and CLI that turned stateless coding agents into a coordinated debugging team.">
+    <meta property="og:type" content="article">
+    <meta property="og:url" content="https://navid72m.github.io/blog/agent-memory-graph-odoo-migration.html">
+    <link rel="canonical" href="https://navid72m.github.io/blog/agent-memory-graph-odoo-migration.html">
+
+    <!-- Google tag (gtag.js) -->
+    <script async src="https://www.googletagmanager.com/gtag/js?id=G-NJ4XLD7F9K"></script>
+    <script data-goatcounter="https://navid72m.goatcounter.com/count"
+        async src="//gc.zgo.at/count.js"></script>
+    <script>
+      window.dataLayer = window.dataLayer || [];
+      function gtag(){dataLayer.push(arguments);}
+      gtag('js', new Date());
+      gtag('config', 'G-NJ4XLD7F9K');
+    </script>
+
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+
+        :root {
+            --primary-color: #667eea;
+            --secondary-color: #764ba2;
+            --accent-color: #ff6b6b;
+            --text-primary: #1a202c;
+            --text-secondary: #4a5568;
+            --text-light: #718096;
+            --bg-primary: #ffffff;
+            --bg-secondary: #f8fafc;
+            --bg-dark: #1a202c;
+            --gradient-primary: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            --gradient-accent: linear-gradient(135deg, #ff6b6b 0%, #feca57 100%);
+            --shadow-lg: 0 20px 25px -5px rgba(0,0,0,0.1), 0 10px 10px -5px rgba(0,0,0,0.04);
+            --shadow-xl: 0 25px 50px -12px rgba(0,0,0,0.25);
+        }
+
+        html { scroll-behavior: smooth; }
+
+        body {
+            font-family: 'Georgia', serif;
+            line-height: 1.7;
+            color: var(--text-primary);
+            background: var(--bg-primary);
+        }
+
+        .scroll-indicator { position: fixed; top: 0; left: 0; width: 100%; height: 4px; background: var(--bg-secondary); z-index: 1001; }
+        .scroll-progress { height: 100%; background: var(--gradient-primary); width: 0%; transition: width 0.1s ease; }
+
+        nav {
+            position: fixed; top: 4px; width: 100%;
+            background: rgba(255,255,255,0.95);
+            backdrop-filter: blur(20px);
+            z-index: 1000; padding: 1rem 0;
+            transition: all 0.3s ease;
+        }
+        nav.scrolled { box-shadow: var(--shadow-lg); }
+        .nav-container { max-width: 1200px; margin: 0 auto; display: flex; justify-content: space-between; align-items: center; padding: 0 2rem; }
+        .logo { font-size: 1.5rem; font-weight: 700; background: var(--gradient-primary); -webkit-background-clip: text; -webkit-text-fill-color: transparent; background-clip: text; text-decoration: none; font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif; }
+        .nav-links { display: flex; list-style: none; gap: 2rem; font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif; }
+        .nav-links a { text-decoration: none; color: var(--text-secondary); font-weight: 500; font-size: 0.95rem; transition: color 0.3s ease; }
+        .nav-links a:hover { color: var(--primary-color); }
+
+        .post-hero {
+            background: var(--gradient-primary);
+            color: white;
+            padding: 8rem 2rem 5rem;
+            text-align: center;
+        }
+
+        .post-hero-inner { max-width: 780px; margin: 0 auto; }
+
+        .post-category {
+            display: inline-block;
+            background: rgba(255,255,255,0.2);
+            padding: 0.35rem 1rem;
+            border-radius: 20px;
+            font-size: 0.85rem;
+            font-weight: 600;
+            letter-spacing: 0.05em;
+            text-transform: uppercase;
+            margin-bottom: 1.5rem;
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+        }
+
+        .post-hero h1 {
+            font-size: 2.5rem;
+            font-weight: 700;
+            line-height: 1.25;
+            margin-bottom: 1.5rem;
+            font-family: 'Georgia', serif;
+        }
+
+        .post-tagline {
+            font-size: 1.15rem;
+            opacity: 0.9;
+            font-style: italic;
+            margin-bottom: 2rem;
+        }
+
+        .post-meta {
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            gap: 1.5rem;
+            font-size: 0.9rem;
+            opacity: 0.85;
+            flex-wrap: wrap;
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+        }
+
+        .post-meta span { display: flex; align-items: center; gap: 0.4rem; }
+
+        .post-body {
+            max-width: 720px;
+            margin: 0 auto;
+            padding: 4rem 2rem 6rem;
+        }
+
+        .post-body h2 {
+            font-size: 1.7rem;
+            font-weight: 700;
+            color: var(--text-primary);
+            margin: 3rem 0 1rem;
+            padding-bottom: 0.5rem;
+            border-bottom: 2px solid #e2e8f0;
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+        }
+
+        .post-body h2:first-child { margin-top: 0; }
+
+        .post-body h3 {
+            font-size: 1.25rem;
+            font-weight: 700;
+            color: var(--text-primary);
+            margin: 2rem 0 0.75rem;
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+        }
+
+        .post-body p {
+            font-size: 1.1rem;
+            color: var(--text-secondary);
+            margin-bottom: 1.5rem;
+            line-height: 1.85;
+        }
+
+        .post-body p strong { color: var(--text-primary); font-weight: 700; }
+
+        .post-body ul, .post-body ol {
+            margin: 0 0 1.5rem 1.5rem;
+            color: var(--text-secondary);
+            font-size: 1.05rem;
+            line-height: 1.8;
+        }
+
+        .post-body li { margin-bottom: 0.5rem; }
+        .post-body li strong { color: var(--text-primary); }
+
+        code {
+            font-family: 'SFMono-Regular', 'Consolas', 'Liberation Mono', monospace;
+            background: #edf2f7;
+            color: var(--secondary-color);
+            padding: 0.15em 0.45em;
+            border-radius: 4px;
+            font-size: 0.9em;
+        }
+
+        .formula-block {
+            background: var(--bg-secondary);
+            border-left: 4px solid var(--primary-color);
+            border-radius: 0 12px 12px 0;
+            padding: 1.25rem 1.5rem;
+            margin: 1.5rem 0;
+            font-family: 'SFMono-Regular', 'Consolas', monospace;
+            font-size: 0.92rem;
+            color: var(--text-primary);
+            white-space: pre-wrap;
+            overflow-x: auto;
+        }
+
+        .abstract {
+            background: var(--bg-secondary);
+            border: 1px solid #e2e8f0;
+            border-radius: 14px;
+            padding: 1.75rem 2rem;
+            margin: 0 0 3rem;
+        }
+
+        .abstract .abstract-label {
+            font-size: 0.8rem;
+            font-weight: 700;
+            letter-spacing: 0.08em;
+            text-transform: uppercase;
+            color: var(--primary-color);
+            margin-bottom: 0.75rem;
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+        }
+
+        .abstract p { font-size: 1.05rem; color: var(--text-secondary); margin-bottom: 0; line-height: 1.8; }
+        .abstract p strong { color: var(--text-primary); }
+
+        blockquote {
+            border-left: 4px solid var(--accent-color);
+            background: #fff5f5;
+            padding: 1.25rem 1.5rem;
+            border-radius: 0 12px 12px 0;
+            margin: 2rem 0;
+            font-style: italic;
+            color: var(--text-secondary);
+            font-size: 1.05rem;
+        }
+
+        blockquote strong { font-style: normal; color: var(--text-primary); }
+
+        .callout {
+            background: linear-gradient(135deg, rgba(102,126,234,0.07) 0%, rgba(118,75,162,0.07) 100%);
+            border: 1px solid rgba(102,126,234,0.25);
+            border-radius: 12px;
+            padding: 1.5rem 2rem;
+            margin: 2rem 0;
+        }
+
+        .callout-title {
+            font-size: 0.8rem;
+            font-weight: 700;
+            letter-spacing: 0.08em;
+            text-transform: uppercase;
+            color: var(--primary-color);
+            margin-bottom: 0.75rem;
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+        }
+
+        .callout p { margin-bottom: 0; color: var(--text-primary); font-size: 1.05rem; }
+        .callout ul { margin-bottom: 0; }
+        .callout ul:last-child li:last-child { margin-bottom: 0; }
+
+        /* Amber "gap" callout for honesty about what's unfinished */
+        .callout.gaps {
+            background: linear-gradient(135deg, rgba(255,107,107,0.06) 0%, rgba(254,202,87,0.08) 100%);
+            border: 1px solid rgba(255,107,107,0.25);
+        }
+        .callout.gaps .callout-title { color: var(--accent-color); }
+
+        .steps {
+            counter-reset: step;
+            list-style: none;
+            margin: 0 0 1.5rem 0;
+        }
+
+        .steps li {
+            counter-increment: step;
+            display: flex;
+            gap: 1.25rem;
+            align-items: flex-start;
+            margin-bottom: 1rem;
+            font-size: 1.05rem;
+            color: var(--text-secondary);
+        }
+
+        .steps li::before {
+            content: counter(step);
+            flex-shrink: 0;
+            width: 28px; height: 28px;
+            background: var(--gradient-primary);
+            color: white;
+            border-radius: 50%;
+            display: flex; align-items: center; justify-content: center;
+            font-size: 0.85rem; font-weight: 700;
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+            margin-top: 0.1em;
+        }
+
+        .reading-list {
+            background: var(--bg-dark);
+            border-radius: 16px;
+            padding: 2rem 2.5rem;
+            margin: 3rem 0;
+        }
+
+        .reading-list h3 {
+            color: #e2e8f0;
+            font-size: 1rem;
+            letter-spacing: 0.07em;
+            text-transform: uppercase;
+            margin-bottom: 1.25rem;
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+        }
+
+        .reading-list ul { list-style: none; margin: 0; color: #a0aec0; }
+        .reading-list li { padding: 0.6rem 0; border-bottom: 1px solid rgba(255,255,255,0.07); font-size: 0.95rem; }
+        .reading-list li:last-child { border-bottom: none; }
+        .reading-list li strong { color: #e2e8f0; }
+        .reading-list li code { background: rgba(255,255,255,0.1); color: #cbd5e0; }
+
+        .post-nav {
+            border-top: 1px solid #e2e8f0;
+            padding: 2rem 0 0;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            flex-wrap: wrap;
+            gap: 1rem;
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+        }
+
+        .post-nav a {
+            text-decoration: none;
+            color: var(--primary-color);
+            font-weight: 600;
+            display: flex; align-items: center; gap: 0.5rem;
+            transition: color 0.2s ease;
+        }
+
+        .post-nav a:hover { color: var(--secondary-color); }
+
+        .disclaimer {
+            font-size: 0.9rem;
+            color: var(--text-light);
+            font-style: italic;
+            text-align: center;
+            margin-top: 3rem;
+            padding-top: 2rem;
+            border-top: 1px dashed #e2e8f0;
+        }
+
+        footer { background: var(--bg-dark); color: #a0aec0; text-align: center; padding: 2rem; font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif; font-size: 0.9rem; }
+        footer a { color: #667eea; text-decoration: none; }
+
+        @media (max-width: 768px) {
+            .post-hero h1 { font-size: 1.8rem; }
+            .post-body { padding: 3rem 1.25rem 4rem; }
+            .nav-links { display: none; }
+        }
+    </style>
+</head>
+<body>
+
+    <div class="scroll-indicator">
+        <div class="scroll-progress" id="scroll-progress"></div>
+    </div>
+
+    <nav id="navbar">
+        <div class="nav-container">
+            <a href="/" class="logo">Navid Mirnouri</a>
+            <ul class="nav-links">
+                <li><a href="/#home">Home</a></li>
+                <li><a href="/#about">About</a></li>
+                <li><a href="/#projects">Projects</a></li>
+                <li><a href="/#research">Research</a></li>
+                <li><a href="/#blog">Blog</a></li>
+                <li><a href="/#contact">Contact</a></li>
+            </ul>
+        </div>
+    </nav>
+
+    <header class="post-hero">
+        <div class="post-hero-inner">
+            <span class="post-category">Agentic Engineering</span>
+            <h1>Giving Agents a Memory:<br>A Knowledge Graph for an ERP Migration</h1>
+            <p class="post-tagline">Stateless coding agents can debug hard problems for an hour. Keeping thirteen of them coherent for six weeks needed something more than a longer prompt.</p>
+            <div class="post-meta">
+                <span><i class="far fa-calendar-alt"></i> July 2026</span>
+                <span><i class="far fa-clock"></i> 15 min read</span>
+                <span><i class="fas fa-user"></i> Navid Mirnouri</span>
+            </div>
+        </div>
+    </header>
+
+    <article class="post-body">
+
+        <div class="abstract">
+            <div class="abstract-label">Abstract</div>
+            <p>I'm migrating an organization's ERP system from Odoo 17 Enterprise to Odoo 19 — a two-hop schema migration (17→18→19) through a version whose Community-edition upgrade scripts are open source and whose Enterprise scripts aren't, self-hosted, in Docker, from scratch. The pipeline itself is <strong>oracle-driven</strong> — it never guesses schema, it asks live reference databases — and builds the migration <strong>twice</strong>, once as a diagnostic scaffold and once as the real thing, gated by whether Odoo 19 actually boots. Debugging it is run by a <strong>thirteen-agent framework</strong> (triage, investigate, repair-plan, implement, review, postmortem, and more) operating across both Claude Code and an agentic CLI called opencode. The problem that framework kept hitting: every agent invocation starts from zero. So alongside the pipeline I built a small <strong>SQLite knowledge graph and CLI</strong> that gives the debugging process itself a durable, queryable memory — and, after one embarrassing lesson about what "durable" actually requires, a workflow rule that every finding gets persisted before anything moves forward.</p>
+        </div>
+
+        <h2>The migration that started it</h2>
+
+        <p>The concrete problem is an Odoo 17 Enterprise → 19 migration, run self-hosted. Odoo forbids skipping major versions, so the path is two hops — 17→18→19 — not one. Between those versions almost everything changes, not just column names: tables disappear (<code>product_packaging</code> is gone by 19), models merge (<code>hr_contract</code> becomes <code>hr_version</code>), field types flip (translatable columns move from <code>varchar</code> to <code>jsonb</code>), and view templates restructure underneath customizations that assume the old shape. Odoo's own upgrade service is SaaS-only for Enterprise customers, and the open-source alternative, OpenUpgrade, assumes an in-place upgrade of a live server — not a dump you're reconstructing offline, in Docker, with evidence at every step. So that reconstruction is what the pipeline does.</p>
+
+        <h3>Never guess schema</h3>
+
+        <p>The design principle underneath everything is that the pipeline never derives target schema from source code, documentation, or a hardcoded mapping table. Instead, three live Odoo instances — one per version, with the relevant modules installed — act as <strong>oracles</strong>. Want to know what <code>sale_order</code> looks like in v19? Ask the v19 oracle's <code>information_schema</code>. Want the default value Odoo itself would assign a new <code>NOT NULL</code> column? Ask the oracle's ORM through <code>odoo shell</code>. The cost of this design is real: an oracle only knows the modules installed in it, so a customer table that uses a module the oracle lacks silently falls into a <code>missing_in_oracle</code> bucket and is never migrated — nothing turns red. Closing that gap is still open work.</p>
+
+        <h3>Building it twice</h3>
+
+        <p>The least obvious architectural choice is that the pipeline builds the target database <strong>twice</strong>, on purpose, for different reasons. The <strong>scaffold path</strong> copies data table-by-table into a freshly created target schema — surgical and fully observable, with a per-table verdict (<code>ok</code> / <code>partial</code> / <code>loss</code> / <code>empty</code> / <code>error</code>) for every single table, but not a real migration; it's a diagnostic that answers "what fits and what doesn't." The <strong>native path</strong> takes that scaffold, restores it onto the target version's Odoo stack, and lets real Odoo and the full OpenUpgrade tree perform the migration exactly as documented upstream. The scaffold gives you evidence and control the native pass can't. The native pass gives you correctness — only Odoo actually knows all of its own migration semantics — that the scaffold can't. Together they produce the deliverable.</p>
+
+        <div class="callout">
+            <div class="callout-title">The acceptance test the pipeline never had</div>
+            <p>Everything upstream of the boot gate is diagnosis. Two things have to exit 0: a migration boot (which cascades the OpenUpgrade path through all 265 installed modules) and a plain smoke boot with no upgrade crutches. The whole pipeline runs under <code>set -e</code> — a failed gate kills the run. No earlier stage's claim about "success" outranks whether Odoo actually starts.</p>
+        </div>
+
+        <p>Two more guards keep results honest rather than accidental. Every environment run is checked against pinned container digests and vendored OpenUpgrade commits — a drifted environment refuses to run at all. And every dump gets its sha256 written into the scratch database itself at restore time, so a later stage can refuse to reuse a scaffold that was actually built from a different dump than the one you think you passed. That guard exists because, once, it didn't, and a run silently read the wrong dump's data — a bug the team still refers to as "the paramond confound."</p>
+
+        <p>One more thing has to happen before any of this touches a browser: <strong>neutralization</strong>. A restored production database is a loaded gun — crons that email real customers, live payment providers, IAP tokens that bill real accounts, a queued outbound mail queue. Every boot, and the deliverable dump itself, runs through a step that disables crons, mail servers, and payment providers, wipes IAP tokens, and cancels the outbox. It's idempotent by design and runs three times per pipeline run, because <code>-u base</code> quietly re-activates some of what the first pass turned off.</p>
+
+        <h2>The bug that undid two "successful" runs</h2>
+
+        <p>The boot gate answers "does Odoo start." It does not answer "is the data actually there." That gap produced the single most useful failure in the project's history. A filestore check — the first thing written for a new validation framework — found that two runs that had passed every existing check, including a working web UI a person could click through, had migrated a database where <strong>every single historical document attachment was a broken link</strong>. The filestore — the actual files behind every invoice PDF and uploaded document — had never been migrated. Nothing in the pipeline had been wrong about what it checked; the pipeline just hadn't been checking that.</p>
+
+        <p>That discovery is what turned "the boot passed" into a six-layer validation suite: structural integrity (row counts, FK orphans, dangling xmlids, sequence safety, filestore integrity, translation survival), full accounting reconciliation (debits and credits, tax totals, reconciliations, trial balance), business-object state distributions across ten models, a functional read-sweep on a disposable clone, an HTTP crawl of the booted instance's public routes, and a final check that the deliverable is actually safe to hand over — crons off, payment providers disabled, mail queue empty. The gate criterion is zero failures across the structural, accounting, and safety layers. It exists specifically because "it booted" turned out not to imply "it's correct."</p>
+
+        <h2>Thirteen agents and the problem with all of them</h2>
+
+        <p>Debugging this pipeline is run by a small roster of specialist agents rather than one long conversation: <code>@triage</code> locates the first failure in a run's logs and stops — no fixing. <code>@investigate</code> builds a SQL-verified root cause with a confidence score, read-only. <code>@repair-plan</code> turns a root cause above 80% confidence into a stepwise plan, one change per step, no code written yet. <code>@implement</code> executes exactly one of those steps. <code>@review</code> adversarially critiques the resulting patch without applying anything. <code>@postmortem</code> writes up what happened into a permanent, grep-friendly knowledge base. A non-executing <code>@chief-engineer</code> sits above all of them, routing work by validating prerequisites and handing out structured task packets rather than doing anything itself. Thirteen roles in total, mirrored across two runtimes — Claude Code and opencode running Nemotron 3 Ultra — so the same protocol works whichever CLI a given session happens to be in.</p>
+
+        <p>The problem this creates is exactly the one the abstract mentions: every one of those agent invocations is a fresh process. A hypothesis <code>@investigate</code> ruled out on Monday has no reason not to get re-proposed by a different session on Wednesday, because nothing about "we already tried that" survives between processes by default. Multiply that by weeks of sessions against a genuinely hard boot-failure bug, and re-deriving "already ruled out" starts costing more than the original investigation did.</p>
+
+        <h2>Memory as a graph, not a transcript</h2>
+
+        <p>The obvious fix — paste more history into the prompt — breaks down fast. Transcripts don't compress, and an agent re-reading a wall of prior chat still has to re-derive the relationship between a hypothesis and the root cause it led to and the patch that root cause eventually produced. What I wanted was closer to how a human debugging team keeps state: a shared ticket with typed, linked artifacts, not a shared chat log. So the memory is a small typed graph, backed by SQLite (six tables: <code>nodes</code>, <code>edges</code>, <code>state</code>, <code>events</code>, <code>tasks</code>, <code>memories</code>), managed by its own dedicated agent, <code>@memory</code>, through eighteen CLI commands.</p>
+
+        <p><strong>Nodes</strong> carry an id, a type, a title, a summary, a status, an optional confidence score, and a JSON attrs blob for anything type-specific. <strong>Edges</strong> are <code>(src, rel, dst, weight)</code> triples, upserted idempotently so re-running a command never duplicates a link. An events table logs every state change as an immutable timeline, and a separate <code>tasks</code> table holds structured work packets — objective, constraints, expected output, artifacts — so a subagent gets a contract instead of a paragraph.</p>
+
+        <p>The node types map directly onto the shape of a debugging investigation, and the edges give them a grammar:</p>
+
+        <ul>
+            <li><strong>issue</strong> — the top-level problem (a failing stage, a boot failure)</li>
+            <li><strong>run</strong> — a pipeline execution, with its failed stage and log path</li>
+            <li><strong>report</strong> — a triage or investigation writeup, with a confidence score</li>
+            <li><strong>hypothesis → root_cause</strong> — candidate explanations, and the ones that survived scrutiny (a hypothesis <em>supports</em> a root_cause)</li>
+            <li><strong>module</strong> — the code area a root cause implicates</li>
+            <li><strong>repair_plan → patch → review</strong> — the fix, in three stages of commitment</li>
+            <li><strong>postmortem → lesson</strong> — what happened, and what to carry forward</li>
+        </ul>
+
+        <p>None of this is novel graph theory — it's closer to a lightweight, purpose-built issue tracker schema than to anything from the knowledge-graph literature. That's deliberate. The goal was never a general-purpose reasoning substrate; it was a place for an agent's conclusions to survive past the process that produced them.</p>
+
+        <h2>A dispatcher that doesn't call an LLM</h2>
+
+        <p>The workflow itself runs as a state machine — onboard, observability, run the pipeline, then <code>triage → investigate → module analysis (optional) → repair-plan → implement (one step) → review → postmortem → retro</code> — and the piece I'm most attached to is the function that decides what's next, <code>recommend_next_subagent</code>, which answers that purely by walking the graph:</p>
+
+        <div class="formula-block">if failed_run and not has_triage:      → @triage
+if has_triage and not has_investigation: → @investigate
+if has_investigation and no high-confidence
+   root_cause and not has_repair_plan:   → @investigate
+if high_confidence_root_cause (≥ 80)
+   and not has_repair_plan:              → @repair-plan
+if has_repair_plan and not has_patch:    → @implement
+if has_patch and not has_review:         → @review
+if has_review and not has_postmortem:    → @postmortem
+if has_postmortem:                       → @retro</div>
+
+        <p>No model call, no prompt — just graph state read off an issue's related-node neighborhood. It's a deliberate echo of a principle I keep coming back to across projects: prefer a <strong>deterministic backstop over prompt hope</strong> wherever a decision can be made from facts you already have. An LLM deciding "what's the next step" from a paragraph of context can drift or hallucinate a stage that was already done; a function that only knows how to check "does a repair_plan node exist yet" cannot.</p>
+
+        <h2>Context you can hand to a stranger</h2>
+
+        <p>The graph is only half of it. Reading it back out is the other half: <code>build_context</code> walks an issue two hops out, pulls the current workflow state and recent events, and renders the whole thing as markdown — runs, reports, hypotheses, root causes, modules, repair plans, patches, reviews, postmortems, lessons, each with its status and confidence. <code>export-context</code> writes that to <code>.ai/context/&lt;issue&gt;.md</code>, and that file — not "here's what we talked about" but a self-contained brief — is what the chief-engineer agent actually reads before routing work, and what a completely fresh session, human or agent, can pick up cold.</p>
+
+        <p>That context file is the third of five persistence layers, and it's worth naming all five, because each earns its place: <code>.ai/state.json</code> is a single workflow ledger — current stage, active issue, completed stages, last run — read first in every session. <code>.ai/memory.db</code> is the graph itself. <code>.ai/context/&lt;issue&gt;.md</code> is the exported handoff. <code>.ai/reports/&lt;type&gt;-&lt;issue&gt;.md</code> holds the raw per-stage findings each specialist agent writes. And <code>kb/&lt;issue&gt;.md</code> is a permanent, grep-friendly knowledge base written by <code>@postmortem</code> after every verified fix — currently a handful of entries, each one turning what would otherwise be a re-investigation into a lookup the moment <code>@triage</code> greps it against a new failure.</p>
+
+        <h2>The lesson learned the hard way</h2>
+
+        <p>The system doesn't get to claim this worked cleanly from the start. At one point the memory database fell more than twenty nodes out of sync with what was actually on disk, because review and investigation reports were being written to <code>.ai/reports/</code> as their own step, and the follow-up step of actually inserting them into <code>memory.db</code> was getting deferred, or skipped, or batched for later. "Later" kept not arriving. The graph looked authoritative and wasn't.</p>
+
+        <blockquote>The fix wasn't a smarter agent. It was a rule: <strong>every artifact gets persisted to memory immediately after it's created</strong>, never batched or deferred — enforced structurally by routing every report-only stage through <code>@memory</code> before the workflow is allowed to proceed to the next one.</blockquote>
+
+        <p>It's a small, almost boring lesson, and I think that's exactly why it matters. The graph doesn't do anything clever to stay in sync with reality — it just refuses to let the workflow move forward while it's out of sync.</p>
+
+        <h2>Where it stands now</h2>
+
+        <p>As of the most recent run, the system is idle: the last pipeline execution passed every stage, produced a bootable v19 dump, and the memory graph is fully synchronized with disk. The milestone since the previous check-in was finishing and wiring in the six-layer validation framework described above — the gap that the filestore discovery exposed is now a permanent, automatable check rather than a one-off finding.</p>
+
+        <p>It would be dishonest to stop there, though. The project keeps an explicit gaps list, and some of the entries are structurally important, not cosmetic:</p>
+
+        <div class="callout gaps">
+            <div class="callout-title">Known gaps</div>
+            <ul>
+                <li>The v17→v18 hop still has <strong>no native boot gate of its own</strong> — a stage banner announces one, but it invokes nothing, so any bug introduced in that first hop only surfaces four times harder, at the v19 boot.</li>
+                <li>Oracle coverage — whether a customer's installed modules are fully represented in the reference databases — isn't gated in the run itself yet, so a missing module's tables can still vanish silently.</li>
+                <li>The Docker-dependent core (neutralization, the boot gate, the copy engine's data movement) has no automated test coverage; only the pure-Python utility layers do.</li>
+                <li>Post-boot FK restoration is explicitly best-effort — the "with foreign keys" deliverable is rebuilt from pre-boot state, not extracted from the booted database itself, so its lineage doesn't fully match what actually shipped.</li>
+            </ul>
+        </div>
+
+        <p>None of these are secret from the system itself — they're the same graph, tracked as open issues with the same node types as everything else, waiting for the next run to reopen them.</p>
+
+        <h2>What this isn't</h2>
+
+        <p>I want to be honest about the scope of the memory layer specifically. It is not a reasoning framework in the sense of an inference engine or a planner — it does no reasoning of its own. The reasoning still happens inside the LLM, inside opencode or Claude Code, inside a human reading a stack trace. What the graph and CLI do is narrower and less glamorous: they make an agent's conclusions <em>durable</em>, <em>typed</em>, and <em>queryable</em>, so that reasoning someone already did doesn't have to be redone. It's closer to source control for a debugging investigation than to an intelligent system — and the same instinct that made a heuristic dispatcher preferable to an LLM call argues against dressing it up as more than that.</p>
+
+        <div class="reading-list">
+            <h3>The stack</h3>
+            <ul>
+                <li><strong>opencode / Claude Code</strong> — the two agentic-CLI runtimes the thirteen-agent protocol runs under</li>
+                <li><strong>Nemotron 3 Ultra</strong> — the model behind the opencode sessions</li>
+                <li><strong>SQLite</strong> — the entire persistence layer for the graph, events, and task packets</li>
+                <li><strong>Python</strong> — <code>argparse</code>-based CLI, plain <code>sqlite3</code>, no ORM, no framework</li>
+                <li><strong>OpenUpgrade</strong> — the Community-edition migration scripts the pipeline builds on top of for both hops</li>
+                <li><strong>Docker</strong> — the three version-oracle instances plus the scaffold and native migration targets</li>
+            </ul>
+        </div>
+
+        <p class="disclaimer">Both projects are ongoing. If you're wrestling with a similar Odoo migration, or you've built something in this same "memory for agents" space, I'd like to hear about it — reach me at <a href="mailto:navid72m@gmail.com">navid72m@gmail.com</a>.</p>
+
+        <div class="post-nav">
+            <a href="/#blog"><i class="fas fa-arrow-left"></i> Back to Blog</a>
+            <a href="mailto:navid72m@gmail.com"><i class="fas fa-envelope"></i> Discuss via email</a>
+        </div>
+
+    </article>
+
+    <footer>
+        <p>&copy; 2026 <a href="/">Navid Mirnouri</a>. Bridging consciousness and code, one algorithm at a time.</p>
+    </footer>
+
+    <script>
+        window.addEventListener('scroll', () => {
+            const navbar = document.getElementById('navbar');
+            navbar.classList.toggle('scrolled', window.scrollY > 60);
+
+            const scrollProgress = document.getElementById('scroll-progress');
+            const scrollHeight = document.documentElement.scrollHeight - window.innerHeight;
+            scrollProgress.style.width = ((window.scrollY / scrollHeight) * 100) + '%';
+        });
+    </script>
+</body>
+</html>
