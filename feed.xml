@@ -6,7 +6,16 @@
     <description>Notes on agentic engineering, systems programming, and the philosophy of mind.</description>
     <language>en-us</language>
     <atom:link href="https://navid72m.github.io/feed.xml" rel="self" type="application/rss+xml" />
-    <lastBuildDate>Sat, 01 Aug 2026 00:00:00 GMT</lastBuildDate>
+    <lastBuildDate>Mon, 10 Aug 2026 00:00:00 GMT</lastBuildDate>
+
+    <item>
+        <title>Patterns All the Way Down</title>
+        <link>https://navid72m.github.io/blog/patterns-all-the-way-down.html</link>
+        <guid isPermaLink="true">https://navid72m.github.io/blog/patterns-all-the-way-down.html</guid>
+        <pubDate>Mon, 10 Aug 2026 00:00:00 GMT</pubDate>
+        <category>Reflections</category>
+        <description>Why are there patterns everywhere in the universe rather than nothing? A reflection on rules, causality, simulation theory, and how the question keeps folding back into a strange loop.</description>
+    </item>
 
     <item>
         <title>How to Vibe-Code at Scale</title>
