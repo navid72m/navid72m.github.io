@@ -6,7 +6,16 @@
     <description>Notes on agentic engineering, systems programming, and the philosophy of mind.</description>
     <language>en-us</language>
     <atom:link href="https://navid72m.github.io/feed.xml" rel="self" type="application/rss+xml" />
-    <lastBuildDate>Mon, 10 Aug 2026 00:00:00 GMT</lastBuildDate>
+    <lastBuildDate>Wed, 18 Nov 2026 00:00:00 GMT</lastBuildDate>
+
+    <item>
+        <title>Auditing Real-World MCP Servers with mcp-behave: A Ground-Truth Comparative Study</title>
+        <link>https://navid72m.github.io/blog/auditing-mcp-servers-with-mcp-behave.html</link>
+        <guid isPermaLink="true">https://navid72m.github.io/blog/auditing-mcp-servers-with-mcp-behave.html</guid>
+        <pubDate>Wed, 18 Nov 2026 00:00:00 GMT</pubDate>
+        <category>Agentic Engineering</category>
+        <description>Tool descriptions are marketing copy. Why static registry scanners fail and how dynamic syscall auditing catches unconstrained shell access and network egress in production Model Context Protocol servers.</description>
+    </item>
 
     <item>
         <title>Patterns All the Way Down</title>

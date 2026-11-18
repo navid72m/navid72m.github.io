@@ -1,0 +1,8 @@
+name = "blog-likes"
+main = "src/index.js"
+compatibility_date = "2026-08-01"
+
+# After running `wrangler kv namespace create LIKES`, paste the returned id below.
+[[kv_namespaces]]
+binding = "LIKES"
+id = "8a2d0b18cf7640f39488bc792ccd6932"

