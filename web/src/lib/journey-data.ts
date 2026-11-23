@@ -20,21 +20,59 @@ export interface Chapter {
   links?: ChapterLink[];
 }
 
+/**
+ * The mechanism/pattern/branch examination sequence is compressed into a
+ * tiny slice of actual walking distance (PUZZLE_ZONE_SIM_SPAN) even though
+ * it consumes a full PUZZLE_ZONE_RAW_SPAN worth of scroll — see
+ * components/journey/PuzzleZoneGate.ts for how that mapping works. This is
+ * what makes the character visibly stop at the puzzle instead of walking
+ * through it.
+ */
+export const PUZZLE_ZONE_START = 1900;
+export const PUZZLE_ZONE_RAW_SPAN = 3400;
+export const PUZZLE_ZONE_SIM_SPAN = 339;
+
+const PUZZLE_THIRD = PUZZLE_ZONE_SIM_SPAN / 3;
+const MECHANISM_END = PUZZLE_ZONE_START + PUZZLE_THIRD;
+const PATTERN_END = MECHANISM_END + PUZZLE_THIRD;
+const BRANCHING_END = PATTERN_END + PUZZLE_THIRD;
+
 export const CHAPTERS: Chapter[] = [
   {
     id: "childhood",
     title: "Childhood",
     startWorld: 0,
-    endWorld: 4000,
+    endWorld: PUZZLE_ZONE_START,
     scene: { city: "tehran", description: "The Alborz rise above Tehran’s rooftops as a child sets out beneath the trees." },
-    overlay: { eyebrow: "Childhood · Tehran", lines: ["Every journey begins somewhere."] },
+    overlay: { eyebrow: "Childhood · Tehran", lines: ["Every journey begins with a question."] },
+  },
+  {
+    id: "mechanism",
+    title: "The Mechanism",
+    startWorld: PUZZLE_ZONE_START,
+    endWorld: MECHANISM_END,
+    overlay: { lines: [] },
+  },
+  {
+    id: "pattern",
+    title: "Finding the Pattern",
+    startWorld: MECHANISM_END,
+    endWorld: PATTERN_END,
+    overlay: { lines: ["I loved figuring things out."] },
+  },
+  {
+    id: "branching",
+    title: "Thinking Ahead",
+    startWorld: PATTERN_END,
+    endWorld: BRANCHING_END,
+    overlay: { lines: [] },
   },
   {
     id: "curiosity",
     title: "Curiosity",
-    startWorld: 4000,
+    startWorld: BRANCHING_END,
     endWorld: 8500,
-    overlay: { lines: ["Some questions change the direction of a life."] },
+    overlay: { lines: ["The puzzles grew bigger. So did my curiosity."] },
   },
   {
     id: "learning",

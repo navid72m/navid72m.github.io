@@ -1,6 +1,6 @@
 import { Container, Graphics, Text } from "pixi.js";
-import { clamp, keyframeLerp, lerp, lerpColor } from "./mathUtils";
-import { CHAPTERS, GLOBAL_WORLD_DISTANCE, LANDMARKS } from "@/lib/journey-data";
+import { clamp, keyframeLerp, lerp, lerpColor, smoothstep } from "./mathUtils";
+import { CHAPTERS, GLOBAL_WORLD_DISTANCE, LANDMARKS, PUZZLE_ZONE_START } from "@/lib/journey-data";
 import { trailY } from "./JourneyTerrain";
 import { GROUND_SCALE } from "./WorldCamera";
 
@@ -34,9 +34,21 @@ export interface ParallaxEnvironment {
   computationCells: { g: Graphics; seed: number }[];
   gateway?: { glow: Graphics; worldX: number };
   monument?: { container: Container; label: Text };
+  childhoodPuzzle?: {
+    mechanism: ReturnType<typeof buildMechanismPuzzle>;
+    pattern: Graphics[];
+    branching: Graphics[];
+  };
 }
 
 const ENTERPRISE = CHAPTERS.find((chapter) => chapter.id === "enterprise")!;
+const MECHANISM_CH = CHAPTERS.find((chapter) => chapter.id === "mechanism")!;
+const PATTERN_CH = CHAPTERS.find((chapter) => chapter.id === "pattern")!;
+const BRANCHING_CH = CHAPTERS.find((chapter) => chapter.id === "branching")!;
+
+function progressBetween(worldX: number, startWorld: number, endWorld: number) {
+  return clamp((worldX - startWorld) / (endWorld - startWorld), 0, 1);
+}
 
 const GROUND_COLOR = 0x14161c;
 const GROUND_TICK_COLOR = 0x2d3038;
@@ -443,6 +455,95 @@ function buildOverlookEcho(container: Container, worldX: number, factor: number,
   container.addChild(echo);
 }
 
+/** Three interlocking rings that rotate into alignment, then ease apart to "open" with a soft glow behind them. */
+function buildMechanismPuzzle(container: Container, worldX: number, factor: number, groundY: number, height: number) {
+  const x = worldX * factor;
+  const cy = groundY - height * 0.17;
+  const baseRadius = height * 0.052;
+  const startAngles = [0.6, 2.4, 4.3];
+  const rings = startAngles.map((startAngle, i) => {
+    const ring = new Container();
+    ring.position.set(x, cy);
+    const r = baseRadius * (1 - i * 0.22);
+    const g = new Graphics();
+    g.circle(0, 0, r).stroke({ color: 0x3a4a52, width: 3.4, alpha: 0.85 });
+    g.rect(-1.4, -r - 5, 2.8, 8).fill({ color: 0x3a4a52, alpha: 0.9 });
+    ring.addChild(g);
+    container.addChild(ring);
+    return { ring, startAngle, r };
+  });
+  const glow = new Graphics();
+  container.addChild(glow);
+  return { x, cy, baseRadius, rings, glow };
+}
+
+function updateMechanismPuzzle(mechanism: ReturnType<typeof buildMechanismPuzzle>, mechanismT: number) {
+  const openAmt = smoothstep(mechanismT);
+  for (const { ring, startAngle, r } of mechanism.rings) {
+    ring.rotation = lerp(startAngle, 0, openAmt);
+    ring.scale.set(1 + openAmt * 0.16 * (r / mechanism.baseRadius));
+  }
+  mechanism.glow.clear();
+  if (openAmt > 0) {
+    for (let r = mechanism.baseRadius * 0.6; r > 0; r -= mechanism.baseRadius * 0.12) {
+      mechanism.glow.circle(mechanism.x, mechanism.cy, r).fill({ color: CYAN_GLOW, alpha: 0.05 * openAmt });
+    }
+  }
+}
+
+/** Four shapes revealed inside the opened mechanism, lighting up one after another. */
+function buildFindingPattern(container: Container, worldX: number, factor: number, groundY: number, height: number) {
+  const x = worldX * factor;
+  const cy = groundY - height * 0.17;
+  const size = height * 0.012;
+  const shapes: Graphics[] = [];
+  for (let i = 0; i < 4; i++) {
+    const g = new Graphics();
+    const sx = x - size * 6 + i * size * 4;
+    if (i === 0) g.circle(sx, cy, size).fill(CYAN_GLOW);
+    else if (i === 1) g.poly([sx, cy - size, sx + size, cy + size, sx - size, cy + size]).fill(CYAN_GLOW);
+    else if (i === 2) g.rect(sx - size, cy - size, size * 2, size * 2).fill(CYAN_GLOW);
+    else g.poly([sx, cy - size, sx + size, cy, sx, cy + size, sx - size, cy]).fill(CYAN_GLOW);
+    g.alpha = 0.12;
+    container.addChild(g);
+    shapes.push(g);
+  }
+  return shapes;
+}
+
+function updateFindingPattern(shapes: Graphics[], patternT: number) {
+  shapes.forEach((g, i) => {
+    const lit = clamp(patternT * shapes.length - i, 0, 1);
+    g.alpha = 0.12 + 0.75 * lit;
+  });
+}
+
+/** A path forking into three; each branch lights in turn, then the forward one is left emphasized. */
+function buildThinkingAhead(container: Container, worldX: number, factor: number, groundY: number, height: number) {
+  const x = worldX * factor;
+  const baseY = groundY - height * 0.02;
+  const topY = groundY - height * 0.22;
+  const spreads = [-55, 0, 55];
+  const branches = spreads.map((dx) => {
+    const g = new Graphics();
+    g.moveTo(x, baseY).quadraticCurveTo(x + dx * 0.5, baseY - height * 0.1, x + dx, topY).stroke({ color: 0x50666d, width: 2.5 });
+    g.alpha = 0;
+    container.addChild(g);
+    return g;
+  });
+  return branches;
+}
+
+function updateThinkingAhead(branches: Graphics[], branchT: number) {
+  branches.forEach((g, i) => {
+    const stagger = i * 0.22;
+    const lit = clamp((branchT - stagger) / 0.4, 0, 1);
+    const forward = i === 1;
+    const settle = smoothstep(branchT) * (forward ? 0.4 : -0.18);
+    g.alpha = clamp(0.3 * lit + settle, 0, 0.75);
+  });
+}
+
 export function createParallaxEnvironment(): ParallaxEnvironment {
   const back = new Container();
   const foreground = new Container();
@@ -498,6 +599,12 @@ export function resizeParallaxEnvironment(env: ParallaxEnvironment, width: numbe
   env.monument = buildEnterpriseMonument(width * 0.32, groundY, height);
   env.midground.container.addChild(env.monument.container);
 
+  env.childhoodPuzzle = {
+    mechanism: buildMechanismPuzzle(env.midground.container, PUZZLE_ZONE_START, env.midground.factor, groundY, height),
+    pattern: buildFindingPattern(env.midground.container, PUZZLE_ZONE_START, env.midground.factor, groundY, height),
+    branching: buildThinkingAhead(env.midground.container, PUZZLE_ZONE_START, env.midground.factor, groundY, height),
+  };
+
   // L4 — the walking surface extends beyond both ends of the scroll range.
   buildGroundStrip(env.ground.container, height, width);
 
@@ -529,5 +636,11 @@ export function updateParallaxEnvironment(env: ParallaxEnvironment, worldX: numb
     const t = (worldX - ENTERPRISE.startWorld) / (ENTERPRISE.endWorld - ENTERPRISE.startWorld);
     const version = t < 1 / 3 ? "Odoo 17" : t < 2 / 3 ? "Odoo 18" : "Odoo 19";
     if (label.text !== version) label.text = version;
+  }
+
+  if (env.childhoodPuzzle) {
+    updateMechanismPuzzle(env.childhoodPuzzle.mechanism, progressBetween(worldX, MECHANISM_CH.startWorld, MECHANISM_CH.endWorld));
+    updateFindingPattern(env.childhoodPuzzle.pattern, progressBetween(worldX, PATTERN_CH.startWorld, PATTERN_CH.endWorld));
+    updateThinkingAhead(env.childhoodPuzzle.branching, progressBetween(worldX, BRANCHING_CH.startWorld, BRANCHING_CH.endWorld));
   }
 }
