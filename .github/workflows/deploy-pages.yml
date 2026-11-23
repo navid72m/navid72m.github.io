@@ -1,0 +1,68 @@
+name: Deploy to GitHub Pages
+
+on:
+  push:
+    branches: [master]
+  workflow_dispatch: {}
+
+permissions:
+  contents: read
+  pages: write
+  id-token: write
+
+concurrency:
+  group: pages
+  cancel-in-progress: true
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 20
+          cache: npm
+          cache-dependency-path: web/package-lock.json
+
+      - name: Install app dependencies
+        working-directory: web
+        run: npm ci
+
+      - name: Build static export
+        working-directory: web
+        run: npm run build
+
+      - name: Assemble publish directory
+        run: |
+          set -euo pipefail
+          mkdir publish
+
+          # Existing static site content (blog, SEO files, legacy assets) — untouched.
+          cp index.html publish/
+          cp robots.txt sitemap.xml feed.xml CNAME google940b89798d72f0a4.html publish/
+          cp -R blog publish/blog
+          cp -R assets publish/assets
+          cp -R index_files publish/index_files
+
+          # Overlay the journey app's static export: its index.html intentionally
+          # replaces the old homepage; everything else (_next/, journey/*.webp,
+          # the CV PDF, favicon) lands alongside the untouched blog/assets above.
+          cp -R web/out/. publish/
+
+      - uses: actions/configure-pages@v5
+
+      - uses: actions/upload-pages-artifact@v3
+        with:
+          path: publish
+
+  deploy:
+    needs: build
+    runs-on: ubuntu-latest
+    environment:
+      name: github-pages
+      url: ${{ steps.deployment.outputs.page_url }}
+    steps:
+      - id: deployment
+        uses: actions/deploy-pages@v4
