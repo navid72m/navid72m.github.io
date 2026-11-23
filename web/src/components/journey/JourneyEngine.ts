@@ -2,6 +2,7 @@ import { Application, Ticker } from "pixi.js";
 import { JourneyController } from "./JourneyController";
 import { trailY } from "./JourneyTerrain";
 import { GROUND_SCALE, WorldCamera } from "./WorldCamera";
+import { PuzzleZoneGate, simFromRaw } from "./PuzzleZoneGate";
 import { CharacterGrowthController } from "./CharacterGrowthController";
 import { CharacterAnimator } from "./CharacterAnimator";
 import { createCharacterRig, updateCharacterRig, type CharacterRig } from "./CharacterRig2D";
@@ -33,6 +34,7 @@ export class JourneyEngine {
   private app: Application | null = null;
   private scrollCtl = new JourneyController();
   private camera = new WorldCamera();
+  private puzzleGate = new PuzzleZoneGate();
   private growth = new CharacterGrowthController();
   private animator = new CharacterAnimator();
   private rig: CharacterRig | null = null;
@@ -113,7 +115,9 @@ export class JourneyEngine {
     const dt = Math.min(ticker.elapsedMS, 100) / 1000;
     this.time += dt;
 
-    const targetWorldX = this.scrollCtl.scrollProgress * SCROLLABLE_WORLD_DISTANCE;
+    const raw = this.scrollCtl.scrollProgress * SCROLLABLE_WORLD_DISTANCE;
+    const zoneProgress = this.puzzleGate.update(raw, dt);
+    const targetWorldX = simFromRaw(raw, zoneProgress);
     const { worldX, velocity } = this.camera.update(targetWorldX, dt);
     const journeyProgress = worldX / GLOBAL_WORLD_DISTANCE;
 
