@@ -1,0 +1,187 @@
+.stageWrapper {
+  position: relative;
+}
+
+.stage {
+  position: fixed;
+  inset: 0;
+  overflow: hidden;
+  background:
+    radial-gradient(ellipse at 66% 62%, #c9bd9d66, transparent 45%),
+    linear-gradient(180deg, #202934 0%, #475966 34%, #9caaab 70%, #798687 85%);
+}
+
+/* The sky moves more slowly than the nearest trees and the walking surface. */
+.world, .world canvas, .panorama, .panorama > div, .panorama::after {
+  position: absolute;
+  inset: 0;
+}
+
+.panorama {
+  overflow: hidden;
+  opacity: var(--horizon-opacity, 1);
+}
+
+.panorama > div {
+  inset: 0 -8%;
+  background-position: 65% center;
+  background-size: cover;
+  transform: translateX(var(--pan, 5%));
+}
+
+.tehran { background-image: url("/journey/tehran.webp"); }
+.munich {
+  background-image: url("/journey/munich.webp");
+  opacity: var(--munich, 0);
+}
+.panorama > .rasht {
+  inset: 0 -6% 9%;
+  background-position: 67% 78%;
+  background-image: url("/journey/rasht.webp");
+  opacity: var(--rasht, 0);
+}
+
+.panorama::after {
+  content: "";
+  background:
+    radial-gradient(ellipse at top left, #111923a8, transparent 67%),
+    linear-gradient(180deg, #151d2840, transparent 56%, #222e302b);
+}
+
+.spacer {
+  pointer-events: none;
+}
+
+.grain {
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+  opacity: 0.045;
+  mix-blend-mode: overlay;
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='120' height='120'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='2' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)'/%3E%3C/svg%3E");
+  background-size: 180px 180px;
+}
+
+.chapterOverlay {
+  position: absolute;
+  left: clamp(2rem, 7vw, 8rem);
+  top: 9%;
+  max-width: min(620px, 78vw);
+  pointer-events: none;
+  text-shadow: 0 1px 8px #10182280;
+}
+
+.chapterOverlay :global(.chapterOverlayEyebrow) {
+  margin: 0 0 0.5em;
+  font-family: var(--font-geist-mono), monospace;
+  text-transform: uppercase;
+  letter-spacing: 0.17em;
+  font-size: 0.8rem;
+  color: #d4d9d6;
+}
+
+.chapterOverlay :global(.chapterOverlayEyebrow:empty),
+.chapterOverlay :global(.chapterOverlayLine:empty) {
+  display: none;
+}
+
+.chapterOverlay :global(.chapterOverlayLine) {
+  margin: 0 0 0.3em;
+  font-family: Georgia, "Times New Roman", serif;
+  font-size: clamp(1.17rem, 1.65vw + 0.6rem, 2rem);
+  font-weight: 400;
+  letter-spacing: 0.01em;
+  line-height: 1.5;
+  color: #e9e6df;
+}
+
+.chapterOverlay :global(.chapterOverlayLine:last-child) {
+  margin-bottom: 0;
+}
+
+.chapterOverlay :global(.chapterScrollHint) {
+  font: 400 0.78rem var(--font-geist-mono), monospace;
+  letter-spacing: 0.06em;
+  color: #d4d9d6;
+}
+
+.finalLinks {
+  position: absolute;
+  left: 8%;
+  bottom: 6%;
+  display: flex;
+  gap: 1.4em;
+  flex-wrap: wrap;
+}
+
+.finalLinks a {
+  font-family: Georgia, "Times New Roman", serif;
+  font-size: 1rem;
+  letter-spacing: 0.04em;
+  color: #cfd6e0;
+  border-bottom: 1px solid rgba(207, 214, 224, 0.35);
+  padding-bottom: 0.2em;
+  transition: color 0.2s ease, border-color 0.2s ease;
+}
+
+.finalLinks a:hover,
+.finalLinks a:focus-visible {
+  color: #ffffff;
+  border-color: #ffffff;
+}
+
+.reducedMain {
+  min-height: 100vh;
+  background: linear-gradient(155deg, #26333c, #121a21 60%);
+  color: #e9e6df;
+  padding: clamp(2rem, 8vw, 8rem) max(7vw, calc((100vw - 44rem) / 2));
+  font-family: Georgia, serif;
+}
+
+.reducedMain h1 {
+  font-size: clamp(2.6rem, 7vw, 5rem);
+  font-weight: 400;
+  margin-bottom: 2rem;
+}
+
+.reducedChapter {
+  padding: 2rem 0;
+  border-top: 1px solid #56636c;
+}
+
+.reducedChapter h2 {
+  font: 500 0.85rem var(--font-geist-mono), monospace;
+  text-transform: uppercase;
+  letter-spacing: 0.14em;
+  color: #c4cfd0;
+  margin-bottom: 0.8rem;
+}
+
+.reducedChapter p {
+  font-size: clamp(1.15rem, 2vw, 1.55rem);
+  line-height: 1.5;
+}
+
+.reducedChapter nav {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 1.4rem;
+  margin-top: 1.25rem;
+  text-decoration: underline;
+  text-underline-offset: 0.25em;
+}
+
+.cityStill {
+  margin: 1rem 0 1.5rem;
+}
+.cityStill img {
+  display: block;
+  width: 100%;
+  height: auto;
+}
+.cityStill figcaption {
+  margin-top: 0.6rem;
+  color: #c4cfd0;
+  font-size: 1rem;
+  line-height: 1.5;
+}
