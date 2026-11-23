@@ -28,7 +28,7 @@ jobs:
 
       - name: Install app dependencies
         working-directory: web
-        run: npm ci
+        run: npm install
 
       - name: Build static export
         working-directory: web
